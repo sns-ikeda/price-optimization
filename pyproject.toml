@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "price-optimization"
+version = "0.1.0"
+description = ""
+authors = ["sns-ikeda <ikeda.shunnosuke@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+PuLP = "^2.6.0"
+pandas = "^1.4.1"
+matplotlib = "^3.5.1"
+gurobipy = "^9.5.1"
+tqdm = "^4.63.0"
+black = "^22.1.0"
+
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+pre-commit = "^2.17.0"
+isort = "^5.10.1"
+jupyterlab = "^3.3.2"
+flake8 = "^4.0.1"
+autoflake = "^1.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+line_length = 120
+profile = "black"
