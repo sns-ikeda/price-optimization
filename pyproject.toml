@@ -11,7 +11,8 @@ pandas = "^1.4.1"
 matplotlib = "^3.5.1"
 gurobipy = "^9.5.1"
 tqdm = "^4.63.0"
-black = "^22.1.0"
+black = {extras = ["jupyter"], version = "^22.3.0"}
+seaborn = "^0.11.2"
 
 
 [tool.poetry.dev-dependencies]
@@ -27,8 +28,8 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 120
+line-length = 100
 
 [tool.isort]
-line_length = 120
+line_length = 100
 profile = "black"

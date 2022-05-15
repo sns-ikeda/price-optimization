@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.9.3
+    hooks:
+    - id: isort
+      additional_dependencies: [pyproject]
+      args: ["--profile", "black"]
+  # Flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        additional_dependencies: [pyproject-flake8]
+        args: ["--ignore=F401,E501,W503"]
+  - repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
