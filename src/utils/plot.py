@@ -26,5 +26,5 @@ def save_image(
 
     ax.set_xlabel("num of items")
     ax.set_ylabel("calculation time [sec]")
-    ax.set_ylim(0, time_limit)
+    ax.set_ylim(0, time_limit * 1.1)
     fig.savefig(Path(dir_path) / f"{image_name}.png", format="png", dpi=300)
