@@ -13,7 +13,7 @@ from src.utils.plot import save_image
 
 def main():
     # configファイルからシミュレーションの設定を取得
-    with open("simulation_config.yaml") as file:
+    with open("config.yaml") as file:
         config = yaml.safe_load(file.read())
 
     num_of_items: List[int] = config["params"]["num_of_items"]
@@ -22,7 +22,8 @@ def main():
     depth_of_trees: int = config["params"]["depth_of_trees"]
     base_price: int = config["params"]["base_price"]
     num_of_simulations: int = config["params"]["num_of_simulations"]
-    time_limit: int = config["params"]["time_limit"]
+    time_limit: int = int(config["option"]["time_limit"])
+    solver: str = config["option"]["solver"]
 
     # シミュレーションを実行
     models_dict = dict()
@@ -41,13 +42,16 @@ def main():
             # パラメータからモデルの入力を作成
             index_set, constant = make_sample_input(params=params)
             model = Model(index_set=index_set, constant=constant)
-            model.solve()
+            model.solve(solver=solver, time_limit=time_limit)
             models.append(model)
         models_dict[i] = models
 
     # 計算時間の後処理
     calculation_time_dict: Dict[int, float] = models2avg_cal_time(models_dict=models_dict)
-    image_name = "calculation_time"
+    image_name = (
+        f"calculation_time_K{params.num_of_prices}_"
+        + f"D{params.num_of_other_features}_DoT{params.depth_of_trees}"
+    )
     save_image(
         calculation_time_dict=calculation_time_dict,
         dir_path=DATA_DIR / "output" / "result",

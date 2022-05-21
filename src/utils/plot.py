@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, Union
+from typing import Union
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
 def save_image(
-    calculation_time_dict: Dict[int, float],
+    calculation_time_dict: dict[int, float],
     dir_path: Union[str, Path],
     image_name: str,
     time_limit: int,

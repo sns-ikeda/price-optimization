@@ -1,9 +1,11 @@
-from typing import Any, Dict, List
+from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
 
 
-def models2avg_cal_time(models_dict: Dict[int, List[Any]]) -> Dict[int, float]:
+def models2avg_cal_time(models_dict: dict[int, list[Any]]) -> dict[int, float]:
     cal_time_avg = dict()
     for num_of_items, models in models_dict.items():
         cal_times = []

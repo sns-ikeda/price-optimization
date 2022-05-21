@@ -5,7 +5,10 @@ params:
     - 5
   num_of_prices: 3
   num_of_other_features: 2
-  depth_of_trees: 3
+  depth_of_trees: 5
   base_price: 1000
   num_of_simulations: 1
-  time_limit: 100
+
+option:
+  time_limit: 30
+  solver: "cbc"

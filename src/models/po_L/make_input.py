@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import itertools
 import random
-from typing import Tuple
 
 import numpy as np
 
@@ -9,7 +10,7 @@ from src.models.po_L.params import Parameter
 from src.processing.binary_tree import depth2branchnodes, depth2leaves, leaf2LtRt
 
 
-def make_sample_input(params: Parameter) -> Tuple[IndexSet, Constant]:
+def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
     """サンプルデータを作成s"""
     # 集合を作成
     M = list(range(params.num_of_items))

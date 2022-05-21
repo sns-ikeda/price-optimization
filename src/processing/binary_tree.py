@@ -1,4 +1,6 @@
-from typing import List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Optional
 
 
 def node2parent(node: int) -> Optional[int]:
@@ -14,7 +16,7 @@ def node2parent(node: int) -> Optional[int]:
     return parent
 
 
-def leaf2root(leaf_node: int) -> List[int]:
+def leaf2root(leaf_node: int) -> list[int]:
     """葉ノードから根ノードまでのパスを抽出"""
     node_path = [leaf_node]
     node = leaf_node
@@ -25,7 +27,7 @@ def leaf2root(leaf_node: int) -> List[int]:
     return node_path
 
 
-def leaf2LtRt(leaf_node: int) -> Tuple[List[int], List[int]]:
+def leaf2LtRt(leaf_node: int) -> tuple[list[int], list[int]]:
     """葉ノードに至るまでに根ノードから左分岐と右分岐したノードを抽出"""
     Lt, Rt = [], []
     nodes = leaf2root(leaf_node)
@@ -44,19 +46,19 @@ def leaf2LtRt(leaf_node: int) -> Tuple[List[int], List[int]]:
     return Lt, Rt
 
 
-def depth2leaves(depth: int) -> List[int]:
+def depth2leaves(depth: int) -> list[int]:
     """木の深さから葉ノードを抽出"""
     leaf_nodes = list(range(2 ** (depth) - 1, 2 ** (depth + 1) - 1))
     return leaf_nodes
 
 
-def depth2allnodes(depth: int) -> List[int]:
+def depth2allnodes(depth: int) -> list[int]:
     """木の深さから全ノードを抽出"""
     all_nodes = list(range(2 ** (depth + 1) - 1))  # 等比数列の和の公式
     return all_nodes
 
 
-def depth2branchnodes(depth: int) -> List[int]:
+def depth2branchnodes(depth: int) -> list[int]:
     """木の深さから枝ノードを抽出"""
     all_nodes = depth2allnodes(depth=depth)
     leaf_nodes = depth2leaves(depth=depth)

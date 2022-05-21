@@ -1,44 +1,47 @@
+from __future__ import annotations
+
 import itertools
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import pulp
+from gurobipy import GurobiError
 
 from src.utils.paths import DATA_DIR
 
 
 @dataclass(frozen=True)
 class IndexSet:
-    D: Dict[int, List[int]]
-    D_: Dict[int, List[int]]
-    M: List[int]
-    K: List[int]
-    TL: Dict[int, List[int]]
-    L: Dict[Tuple[int, int], List[int]]
-    R: Dict[Tuple[int, int], List[int]]
+    D: dict[int, list[int]]
+    D_: dict[int, list[int]]
+    M: list[int]
+    K: list[int]
+    TL: dict[int, list[int]]
+    L: dict[tuple[int, int], list[int]]
+    R: dict[tuple[int, int], list[int]]
 
 
 @dataclass(frozen=True)
 class Constant:
-    beta: Dict[Tuple[int, int, int], float]
-    phi: Dict[Tuple[int, int, int], float]
-    epsilon: Dict[int, float]
-    epsilon_max: Dict[int, float]
-    a: Dict[Tuple[int, int, int], float]
-    b: Dict[Tuple[int, int], float]
-    g: Dict[Tuple[int, int], float]
-    P: Dict[Tuple[int, int], float]
+    beta: dict[tuple[int, int, int], float]
+    phi: dict[tuple[int, int, int], float]
+    epsilon: dict[int, float]
+    epsilon_max: dict[int, float]
+    a: dict[tuple[int, int, int], float]
+    b: dict[tuple[int, int], float]
+    g: dict[tuple[int, int], float]
+    P: dict[tuple[int, int], float]
 
 
 class Variable:
     def __init__(self, index_set: IndexSet, constant: Constant):
         self.index_set = index_set
         self.constant = constant
-        self.u: Dict[Tuple[int, int, int, int], pulp.LpVariable] = dict()
-        self.v: Dict[Tuple[int, int, int, int], pulp.LpVariable] = dict()
-        self.x: Dict[Tuple[int, int], pulp.LpVariable] = dict()
-        self.z: Dict[Tuple[int, int], pulp.LpVariable] = dict()
+        self.u: dict[tuple[int, int, int, int], pulp.LpVariable] = dict()
+        self.v: dict[tuple[int, int, int, int], pulp.LpVariable] = dict()
+        self.x: dict[tuple[int, int], pulp.LpVariable] = dict()
+        self.z: dict[tuple[int, int], pulp.LpVariable] = dict()
 
         self._set_variables()
 
@@ -47,18 +50,20 @@ class Variable:
             for mp, k, kp, t in itertools.product(
                 self.index_set.M, self.index_set.K, self.index_set.K, self.index_set.TL[m]
             ):
-                self.u[m, mp, k, kp, t] = pulp.LpVariable(f"u[{m}_{mp}_{k}_{kp}_{t}]", cat="Binary")
+                self.u[m, mp, k, kp, t] = pulp.LpVariable(
+                    f"u[{m}_{mp}_{k}_{kp}_{t}]", cat=pulp.LpBinary
+                )
 
             for mp, k, t in itertools.product(
                 self.index_set.M, self.index_set.K, self.index_set.TL[m]
             ):
-                self.v[m, mp, k, t] = pulp.LpVariable(f"v[{m}_{mp}_{k}_{t}]", cat="Binary")
+                self.v[m, mp, k, t] = pulp.LpVariable(f"v[{m}_{mp}_{k}_{t}]", cat=pulp.LpBinary)
 
             for k in self.index_set.K:
-                self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat="Binary")
+                self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
 
             for t in self.index_set.TL[m]:
-                self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat="Binary")
+                self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat=pulp.LpBinary)
 
     def to_value(self):
         pass
@@ -181,7 +186,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     index_set: IndexSet
     constant: Constant
     variable: Variable
-    lp_problem: pulp.LpProblem
+    problem: pulp.LpProblem
 
     def __init__(self, index_set: IndexSet, constant: Constant):
         self.index_set = index_set
@@ -198,16 +203,21 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     def write_lp(self) -> None:
         self.problem.writeLP(DATA_DIR / "output" / "lpfile" / f"{self.name}.lp")
 
-    def _solve_gurobi(self) -> None:
-        pass
-
-    def solve(self, solver: Optional[str] = None) -> None:
+    def solve(self, solver: Optional[str] = None, time_limit: int = 100) -> None:
         self._set_model()
-        # 処理開始直前の時間
+        # 求解
         start = time.time()
-        if solver == "gurobi":
-            self._solve_gurobi()
-        else:
-            self.problem.solve()
+        if solver in ["gurobi", "GUROBI", "Gurobi"]:
+            try:
+                solver = pulp.GUROBI(timeLimit=time_limit)
+                self.problem.solve(solver=solver)
+                elapsed_time = time.time() - start
+                self.calculation_time = elapsed_time
+                return
+            except GurobiError:
+                raise Exception("Set the solver to Cbc because Gurobi is not installed.")
+
+        solver = pulp.PULP_CBC_CMD(timeLimit=time_limit)
+        self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
         self.calculation_time = elapsed_time
