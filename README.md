@@ -17,7 +17,7 @@ $ poetry install
 $ pip install poetry
 ```
 ## Simulation
-- simulation_config.yamlにて実験の設定を行い，下記コマンドを実行
+- config.yamlにて実験の設定を行い，下記コマンドを実行
 ```shell
 $ make simulation
 ```
