@@ -1,5 +1,8 @@
 export PYTHONPATH := $(PWD)
 
+pre-commit:
+	poetry run pre-commit install
+
 lint:
 	poetry run flake8 .
 
