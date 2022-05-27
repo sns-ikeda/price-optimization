@@ -193,6 +193,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.constant = constant
         self.name = "POORT-L"
         self.calculation_time = None
+        self.objective = None
 
     def _set_model(self) -> None:
         self.problem = pulp.LpProblem(name=self.name, sense=pulp.LpMaximize)
@@ -210,14 +211,12 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         if solver in ["gurobi", "GUROBI", "Gurobi"]:
             try:
                 solver = pulp.GUROBI(timeLimit=time_limit)
-                self.problem.solve(solver=solver)
-                elapsed_time = time.time() - start
-                self.calculation_time = elapsed_time
                 return
             except GurobiError:
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
-
-        solver = pulp.PULP_CBC_CMD(timeLimit=time_limit)
+        else:
+            solver = pulp.PULP_CBC_CMD(timeLimit=time_limit)
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
         self.calculation_time = elapsed_time
+        self.objective = self.problem.objective.value()
