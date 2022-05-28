@@ -8,6 +8,7 @@ from typing import Optional
 import pulp
 from gurobipy import GurobiError
 
+from algorithm.result import Result
 from src.utils.paths import DATA_DIR
 
 
@@ -192,6 +193,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.index_set = index_set
         self.constant = constant
         self.name = "POORT-L"
+        self.result = None
         self.calculation_time = None
         self.objective = None
 
@@ -204,19 +206,22 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     def write_lp(self) -> None:
         self.problem.writeLP(DATA_DIR / "output" / "lpfile" / f"{self.name}.lp")
 
-    def solve(self, solver: Optional[str] = None, time_limit: int = 100) -> None:
+    def solve(
+        self, solver: Optional[str] = None, TimeLimit: int = 100, NoRelHeurTime: float = 0
+    ) -> None:
         self._set_model()
         # 求解
         start = time.time()
         if solver in ["gurobi", "GUROBI", "Gurobi"]:
             try:
-                solver = pulp.GUROBI(timeLimit=time_limit)
+                solver = pulp.GUROBI(timeLimit=TimeLimit, NoRelHeurTime=NoRelHeurTime)
                 return
             except GurobiError:
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:
-            solver = pulp.PULP_CBC_CMD(timeLimit=time_limit)
+            solver = pulp.PULP_CBC_CMD(timeLimit=TimeLimit)
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
-        self.calculation_time = elapsed_time
-        self.objective = self.problem.objective.value()
+        self.result = Result(
+            calculation_time=elapsed_time, objective=self.problem.objective.value()
+        )
