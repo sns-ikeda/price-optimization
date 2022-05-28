@@ -9,3 +9,4 @@ class Parameter:
     depth_of_trees: int
     base_price: int
     num_of_simulations: int
+    base_seed: int

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-import random
 
 import numpy as np
 
@@ -46,14 +45,18 @@ def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
         (m, mp, k): round(scale_price(base_price, price_max, unit_price, k), 3)
         for m, mp, k in itertools.product(M, M, K)
     }
+    base_seed = params.base_seed
     a, b, g, epsilon, epsilon_max, beta = dict(), dict(), dict(), dict(), dict(), dict()
     for m in M:
         epsilon[m] = 0.001
         epsilon_max[m] = 1.0
         for t in TB[m]:
+            np.random.seed(base_seed + m + t)
             b[m, t] = round(np.random.rand(), 3)
+
             # aは特徴量の中から一つだけ1がたつ
-            node_to_one = random.choice(M + D[m])
+            np.random.seed(base_seed + m + t)
+            node_to_one = np.random.choice(M + D[m])
             for mp in M + D[m]:
                 if mp == node_to_one:
                     a[m, mp, t] = 1
@@ -64,10 +67,12 @@ def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
             if d in D_[m]:
                 g[m, d] = 1
             else:
+                np.random.seed(base_seed + m + d)
                 g[m, d] = round(np.random.rand(), 3)
 
         for mp in M + D[m] + D_[m]:
             for t in TL[m]:
+                np.random.seed(base_seed + m + mp + t)
                 beta[m, mp, t] = round(np.random.randn(), 3)
     constant = Constant(
         beta=beta, phi=phi, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
