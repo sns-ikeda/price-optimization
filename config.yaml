@@ -7,8 +7,18 @@ params:
   num_of_other_features: 2
   depth_of_trees: 5
   base_price: 1000
-  num_of_simulations: 1
+
+model: "po_L"
+
+algorithm:
+  solver_naive: True
+  solver_heuristic: True
+  multi_start_local_search: True
 
 option:
-  time_limit: 30
   solver: "cbc"
+  TimeLimit: 30
+  NoRelHeurTime: 100
+  num_of_simulations: 1
+
+

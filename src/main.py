@@ -1,13 +1,14 @@
-from typing import Dict, List
+from __future__ import annotations
 
 import yaml
 from tqdm import tqdm
 
-from src.models.po_L.make_input import make_sample_input
-from src.models.po_L.model import Model
+from algorithm.assign import AlgorithmAssigner
+from algorithm.result import Result
 from src.models.po_L.params import Parameter
-from src.processing.models2time import models2avg_cal_time
-from src.utils.paths import DATA_DIR
+from src.processing.average_results import average_results
+from src.processing.dict2json import dict2json
+from src.utils.paths import RESULT_DIR
 from src.utils.plot import save_image
 
 
@@ -16,48 +17,72 @@ def main():
     with open("config.yaml") as file:
         config = yaml.safe_load(file.read())
 
-    num_of_items: List[int] = config["params"]["num_of_items"]
+    # 最適化計算のパラメータ
+    num_of_items: list[int] = config["params"]["num_of_items"]
     num_of_prices: int = config["params"]["num_of_prices"]
     num_of_other_features: int = config["params"]["num_of_other_features"]
     depth_of_trees: int = config["params"]["depth_of_trees"]
     base_price: int = config["params"]["base_price"]
-    num_of_simulations: int = config["params"]["num_of_simulations"]
-    time_limit: int = int(config["option"]["time_limit"])
+
+    # シミュレーションの設定
     solver: str = config["option"]["solver"]
+    TimeLimit: int = int(config["option"]["TimeLimit"])
+    NoRelHeurTime: float = config["option"]["NoRelHeurTime"]
+    methods: list[str] = [method for method, tf in config["algorithm"].items() if tf]
+    num_of_simulations: int = config["option"]["num_of_simulations"]
 
     # シミュレーションを実行
-    models_dict = dict()
-    for i in tqdm(num_of_items):
-        models = []
-        for _ in range(num_of_simulations):
-            # モデルで使用するパラメータ
-            params = Parameter(
-                num_of_items=i,
-                num_of_prices=num_of_prices,
-                num_of_other_features=num_of_other_features,
-                depth_of_trees=depth_of_trees,
-                base_price=base_price,
-                num_of_simulations=num_of_simulations,
-            )
-            # パラメータからモデルの入力を作成
-            index_set, constant = make_sample_input(params=params)
-            model = Model(index_set=index_set, constant=constant)
-            model.solve(solver=solver, time_limit=time_limit)
-            models.append(model)
-        models_dict[i] = models
+    results_dict: dict[str, dict[int, list[Result]]] = dict()
+    for method in methods:
+        results_method_dict = dict()
+        for i in tqdm(num_of_items):
+            results: list[Result] = []
+            for s in range(num_of_simulations):
+                # モデルで使用するパラメータ
+                params = Parameter(
+                    num_of_items=i,
+                    num_of_prices=num_of_prices,
+                    num_of_other_features=num_of_other_features,
+                    depth_of_trees=depth_of_trees,
+                    base_price=base_price,
+                    num_of_simulations=num_of_simulations,
+                    solver=solver,
+                    TimeLimit=TimeLimit,
+                    NoRelHeurTime=NoRelHeurTime,
+                    base_seed=s + 42,
+                )
+                # アルゴリズムを実行
+                algorithm = AlgorithmAssigner(params=params, method=method)
+                algorithm.run()
+                results.append(algorithm.result)
+            results_method_dict[i] = results
+        results_dict[method] = results_method_dict
 
-    # 計算時間の後処理
-    calculation_time_dict: Dict[int, float] = models2avg_cal_time(models_dict=models_dict)
-    image_name = (
-        f"calculation_time_K{params.num_of_prices}_"
-        + f"D{params.num_of_other_features}_DoT{params.depth_of_trees}"
-    )
-    save_image(
-        calculation_time_dict=calculation_time_dict,
-        dir_path=DATA_DIR / "output" / "result",
-        image_name=image_name,
-        time_limit=time_limit,
-    )
+    # 結果の後処理
+    result_prefixes = ["calculation_time", "objective"]
+    for result_prefix in result_prefixes:
+        avg_results_dict: dict[str, dict[int, float]] = average_results(
+            results_dict=results_dict, attribute=result_prefix
+        )
+        save_name = (
+            f"{result_prefix}_K{params.num_of_prices}_"
+            + f"D{params.num_of_other_features}_DoT{params.depth_of_trees}"
+        )
+        # jsonで保存
+        dict2json(
+            target_dict=avg_results_dict, save_path=RESULT_DIR / "json" / (save_name + ".json")
+        )
+        # png形式で保存
+        if result_prefix == "calculation_time":
+            y_label = "calculation time [sec]"
+        else:
+            y_label = result_prefix
+        save_image(
+            avg_results_dict=avg_results_dict,
+            dir_path=RESULT_DIR / "png",
+            image_name=save_name,
+            y_label=y_label,
+        )
 
 
 if __name__ == "__main__":
