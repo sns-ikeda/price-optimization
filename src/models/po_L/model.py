@@ -215,7 +215,6 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         if solver in ["gurobi", "GUROBI", "Gurobi"]:
             try:
                 solver = pulp.GUROBI(timeLimit=TimeLimit, NoRelHeurTime=NoRelHeurTime, MIPFocus=1)
-                return
             except GurobiError:
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:
