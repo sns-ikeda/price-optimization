@@ -8,4 +8,6 @@ class SolverNaive(BaseAlgorithm):
         index_set, constant = make_sample_input(params=self.params)
         model = Model(index_set=index_set, constant=constant)
         model.solve(solver=self.params.solver, TimeLimit=self.params.TimeLimit)
+        self.index_set = index_set
+        self.constant = constant
         self.result = model.result
