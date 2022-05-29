@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from algorithm.result import Result
+from src.algorithm.result import Result
 
 
 def average_results(

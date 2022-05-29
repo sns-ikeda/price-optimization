@@ -1,7 +1,7 @@
 from inspect import Parameter
 
-from algorithm.solver_heuristic import SolverHeuristic
-from algorithm.solver_naive import SolverNaive
+from src.algorithm.solver_heuristic import SolverHeuristic
+from src.algorithm.solver_naive import SolverNaive
 
 
 class AlgorithmAssigner:

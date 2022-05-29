@@ -8,7 +8,7 @@ from typing import Optional
 import pulp
 from gurobipy import GurobiError
 
-from algorithm.result import Result
+from src.algorithm.result import Result
 from src.utils.paths import DATA_DIR
 
 

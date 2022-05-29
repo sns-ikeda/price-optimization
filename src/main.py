@@ -3,8 +3,8 @@ from __future__ import annotations
 import yaml
 from tqdm import tqdm
 
-from algorithm.assign import AlgorithmAssigner
-from algorithm.result import Result
+from src.algorithm.assign import AlgorithmAssigner
+from src.algorithm.result import Result
 from src.models.po_L.params import Parameter
 from src.processing.average_results import average_results
 from src.processing.dict2json import dict2json

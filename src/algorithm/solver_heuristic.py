@@ -1,4 +1,4 @@
-from algorithm.base_algorithm import BaseAlgorithm
+from src.algorithm.base_algorithm import BaseAlgorithm
 from src.models.po_L.make_input import make_sample_input
 from src.models.po_L.model import Model
 
