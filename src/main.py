@@ -30,6 +30,10 @@ def main():
     NoRelHeurTime: float = config["option"]["NoRelHeurTime"]
     methods: list[str] = [method for method, tf in config["algorithm"].items() if tf]
     num_of_simulations: int = config["option"]["num_of_simulations"]
+    if "multi_start_local_search" in methods:
+        num_multi_start = config["multi_start_local_search"]["num_multi_start"]
+    else:
+        num_multi_start = 0
 
     # シミュレーションを実行
     results_dict: dict[str, dict[int, list[Result]]] = dict()
@@ -49,6 +53,7 @@ def main():
                     solver=solver,
                     TimeLimit=TimeLimit,
                     NoRelHeurTime=NoRelHeurTime,
+                    num_multi_start=num_multi_start,
                     base_seed=s + 42,
                 )
                 # アルゴリズムを実行
