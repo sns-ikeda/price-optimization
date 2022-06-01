@@ -55,10 +55,8 @@ class Variable:
                     f"u[{m}_{mp}_{k}_{kp}_{t}]", cat=pulp.LpBinary
                 )
 
-            for mp, k, t in itertools.product(
-                self.index_set.M, self.index_set.K, self.index_set.TL[m]
-            ):
-                self.v[m, mp, k, t] = pulp.LpVariable(f"v[{m}_{mp}_{k}_{t}]", cat=pulp.LpBinary)
+            for k, t in itertools.product(self.index_set.K, self.index_set.TL[m]):
+                self.v[m, k, t] = pulp.LpVariable(f"v[{m}_{k}_{t}]", cat=pulp.LpBinary)
 
             for k in self.index_set.K:
                 self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
@@ -67,7 +65,10 @@ class Variable:
                 self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat=pulp.LpBinary)
 
     def to_value(self):
-        pass
+        for attr in self.__dict__.keys():
+            if attr not in ["index_set", "constant"]:
+                for k, v in self.__dict__[attr].items():
+                    self.__dict__[attr][k] = v.value()
 
 
 class ObjectiveFunctionMixin:
@@ -94,8 +95,9 @@ class ObjectiveFunctionMixin:
             ):
                 objective_function += (
                     self.constant.beta[m, d, t]
+                    * self.constant.P[m, k]
                     * self.constant.g[m, d]
-                    * self.variable.v[m, m, k, t]
+                    * self.variable.v[m, k, t]
                 )
 
         self.problem += objective_function, "Objective Function"
@@ -167,20 +169,18 @@ class ConstraintsMixin:
                     self.variable.x[m, k] + self.variable.x[mp, kp] + self.variable.z[m, t]
                     <= self.variable.u[m, mp, k, kp, t] + 2
                 )
+                self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.x[mp, kp]
                 self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.x[m, k]
                 self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.z[m, t]
 
     def _set_xz2v_constraints(self) -> None:
         for m in self.index_set.M:
-            for mp, k, t in itertools.product(
-                self.index_set.M, self.index_set.K, self.index_set.TL[m]
-            ):
+            for k, t in itertools.product(self.index_set.K, self.index_set.TL[m]):
                 self.problem += (
-                    self.variable.x[mp, k] + self.variable.z[m, t]
-                    <= self.variable.v[m, mp, k, t] + 1
+                    self.variable.x[m, k] + self.variable.z[m, t] <= self.variable.v[m, k, t] + 1
                 )
-                self.problem += self.variable.v[m, mp, k, t] <= self.variable.x[mp, k]
-                self.problem += self.variable.v[m, mp, k, t] <= self.variable.z[m, t]
+                self.problem += self.variable.v[m, k, t] <= self.variable.x[m, k]
+                self.problem += self.variable.v[m, k, t] <= self.variable.z[m, t]
 
 
 class Model(ObjectiveFunctionMixin, ConstraintsMixin):
@@ -224,3 +224,5 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.result = Result(
             calculation_time=elapsed_time, objective=self.problem.objective.value()
         )
+        self.variable.to_value()
+        self.write_lp()
