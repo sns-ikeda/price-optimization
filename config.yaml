@@ -1,10 +1,10 @@
 params:
   num_of_items:
     - 1
-    - 3
-    # - 5
+    - 2
+    - 5
   num_of_prices: 3
-  num_of_other_features: 2
+  num_of_other_features: 0
   depth_of_trees: 5
   base_price: 1000
 
@@ -13,7 +13,7 @@ model: "po_L"
 algorithm:
   solver_naive: True
   solver_heuristic: True
-  # multi_start_local_search: True
+  multi_start_local_search: True
 
 option:
   solver: "cbc"
@@ -21,4 +21,5 @@ option:
   NoRelHeurTime: 100
   num_of_simulations: 1
 
-
+multi_start_local_search:
+  num_multi_start: 1
