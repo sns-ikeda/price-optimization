@@ -12,6 +12,7 @@ class SolverHeuristic(BaseAlgorithm):
             TimeLimit=self.params.TimeLimit,
             NoRelHeurTime=self.params.NoRelHeurTime,
         )
+        self.model = model
         self.index_set = index_set
         self.constant = constant
         self.result = model.result
