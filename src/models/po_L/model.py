@@ -225,4 +225,3 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
             calculation_time=elapsed_time, objective=self.problem.objective.value()
         )
         self.variable.to_value()
-        self.write_lp()
