@@ -73,7 +73,7 @@ def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
         for mp in M + D[m] + D_[m]:
             for t in TL[m]:
                 np.random.seed(base_seed + m + mp + t)
-                beta[m, mp, t] = round(np.random.randn(), 3)
+                beta[m, mp, t] = round(np.random.rand(), 3)
     constant = Constant(
         beta=beta, phi=phi, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
     )
