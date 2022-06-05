@@ -18,8 +18,11 @@ algorithm:
 option:
   solver: "cbc"
   TimeLimit: 30
-  NoRelHeurTime: 100
   num_of_simulations: 1
 
+solver_heuristic:
+  NoRelHeurTime: 100
+  MIPFocus: 1
+
 multi_start_local_search:
-  num_multi_start: 1
+  num_multi_start: 10

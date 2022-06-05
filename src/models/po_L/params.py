@@ -11,6 +11,7 @@ class Parameter:
     solver: str = "Cbc"
     TimeLimit: int = 600
     NoRelHeurTime: float = 0
+    MIPFocus: int = 0
     num_multi_start: int = 0
     num_of_simulations: int = 1
     base_seed: int = 0

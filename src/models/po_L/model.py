@@ -208,14 +208,20 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.problem.writeLP(DATA_DIR / "output" / "lpfile" / f"{self.name}.lp")
 
     def solve(
-        self, solver: Optional[str] = None, TimeLimit: int = 100, NoRelHeurTime: float = 0
+        self,
+        solver: Optional[str] = None,
+        TimeLimit: int = 100,
+        NoRelHeurTime: float = 0,
+        MIPFocus: int = 0,
     ) -> None:
         self._set_model()
         # 求解
         start = time.time()
         if solver in ["gurobi", "GUROBI", "Gurobi"]:
             try:
-                solver = pulp.GUROBI(timeLimit=TimeLimit, NoRelHeurTime=NoRelHeurTime, MIPFocus=1)
+                solver = pulp.GUROBI(
+                    timeLimit=TimeLimit, NoRelHeurTime=NoRelHeurTime, MIPFocus=MIPFocus
+                )
             except GurobiError:
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:

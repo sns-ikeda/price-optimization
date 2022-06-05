@@ -27,9 +27,14 @@ def main():
     # シミュレーションの設定
     solver: str = config["option"]["solver"]
     TimeLimit: int = int(config["option"]["TimeLimit"])
-    NoRelHeurTime: float = config["option"]["NoRelHeurTime"]
     methods: list[str] = [method for method, tf in config["algorithm"].items() if tf]
     num_of_simulations: int = config["option"]["num_of_simulations"]
+    if "solver_heuristic" in methods:
+        NoRelHeurTime: float = config["multi_start_local_search"]["NoRelHeurTime"]
+        MIPFocus: int = config["multi_start_local_search"]["MIPFocus"]
+    else:
+        NoRelHeurTime: float = 0
+        MIPFocus: int = 0
     if "multi_start_local_search" in methods:
         num_multi_start = config["multi_start_local_search"]["num_multi_start"]
     else:
@@ -53,6 +58,7 @@ def main():
                     solver=solver,
                     TimeLimit=TimeLimit,
                     NoRelHeurTime=NoRelHeurTime,
+                    MIPFocus=MIPFocus,
                     num_multi_start=num_multi_start,
                     base_seed=s + 42,
                 )
