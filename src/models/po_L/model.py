@@ -52,11 +52,12 @@ class Variable:
                 self.index_set.M, self.index_set.K, self.index_set.K, self.index_set.TL[m]
             ):
                 self.u[m, mp, k, kp, t] = pulp.LpVariable(
-                    f"u[{m}_{mp}_{k}_{kp}_{t}]", cat=pulp.LpBinary
+                    f"u[{m}_{mp}_{k}_{kp}_{t}]", cat=pulp.LpContinuous, lowBound=0, upBound=1
                 )
-
             for k, t in itertools.product(self.index_set.K, self.index_set.TL[m]):
-                self.v[m, k, t] = pulp.LpVariable(f"v[{m}_{k}_{t}]", cat=pulp.LpBinary)
+                self.v[m, k, t] = pulp.LpVariable(
+                    f"v[{m}_{k}_{t}]", cat=pulp.LpContinuous, lowBound=0, upBound=1
+                )
 
             for k in self.index_set.K:
                 self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
