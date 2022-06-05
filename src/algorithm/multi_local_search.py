@@ -4,15 +4,13 @@ import copy
 import time
 
 import numpy as np
+from logzero import logger
 from tqdm import tqdm
 
 from src.algorithm.base_algorithm import BaseAlgorithm
 from src.algorithm.result import Result
 from src.models.po_L.make_input import make_sample_input
 from src.models.po_L.params import Parameter
-from src.utils.logger import set_logger
-
-logger = set_logger("multi_local_search")
 
 
 class MultiLocalSearch(BaseAlgorithm):

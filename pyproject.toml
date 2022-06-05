@@ -13,6 +13,7 @@ gurobipy = "^9.5.1"
 tqdm = "^4.63.0"
 black = {extras = ["jupyter"], version = "^22.3.0"}
 seaborn = "^0.11.2"
+logzero = "^1.7.0"
 
 
 [tool.poetry.dev-dependencies]
