@@ -30,8 +30,8 @@ def main():
     methods: list[str] = [method for method, tf in config["algorithm"].items() if tf]
     num_of_simulations: int = config["option"]["num_of_simulations"]
     if "solver_heuristic" in methods:
-        NoRelHeurTime: float = config["multi_start_local_search"]["NoRelHeurTime"]
-        MIPFocus: int = config["multi_start_local_search"]["MIPFocus"]
+        NoRelHeurTime: float = config["solver_heuristic"]["NoRelHeurTime"]
+        MIPFocus: int = config["solver_heuristic"]["MIPFocus"]
     else:
         NoRelHeurTime: float = 0
         MIPFocus: int = 0
