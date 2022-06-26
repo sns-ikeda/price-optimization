@@ -14,6 +14,7 @@ tqdm = "^4.63.0"
 black = {extras = ["jupyter"], version = "^22.3.0"}
 seaborn = "^0.11.2"
 logzero = "^1.7.0"
+openpyxl = "^3.0.10"
 
 
 [tool.poetry.dev-dependencies]
