@@ -16,6 +16,7 @@ seaborn = "^0.11.2"
 logzero = "^1.7.0"
 openpyxl = "^3.0.10"
 interpretableai = "^2.9.0"
+sklearn = "^0.0"
 
 
 [tool.poetry.dev-dependencies]
