@@ -1,0 +1,13 @@
+realworld:
+  - breakfast
+
+artificial:
+  params:
+    num_of_items:
+      - 1
+      - 2
+      - 5
+    num_of_prices: 2
+    num_of_other_features: 1
+    depth_of_trees: 2
+    base_price: 1000

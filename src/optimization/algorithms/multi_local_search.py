@@ -7,25 +7,29 @@ import numpy as np
 from logzero import logger
 from tqdm import tqdm
 
-from src.algorithm.base_algorithm import BaseAlgorithm
-from src.algorithm.result import Result
-from src.models.po_L.make_input import make_sample_input
-from src.models.po_L.params import Parameter
+from src.optimization.algorithms.base_algorithm import BaseAlgorithm
+from src.optimization.result import Result
 
 
 class MultiLocalSearch(BaseAlgorithm):
-    def __init__(self, params: Parameter):
-        super().__init__(params)
-        self.index_set, self.constant = make_sample_input(params=self.params)
-        self.__objective = -np.inf
+    def __init__(self, model, num_multi_start: int = 1, seed: int = 0):
+        super().__init__(model)
+        self.num_multi_start = num_multi_start
+        self.seed = seed
+        self.index_set, self.constant = self.model.index_set, self.model.constant
+        self.xs = []
+        self.zs = []
+        self.objectives = []
 
     def run(self) -> None:
         start = time.time()
-        for i in tqdm(range(self.params.num_multi_start)):
+        for i in tqdm(range(self.num_multi_start)):
             logger.info(f"num of multi start: {i}")
-            self.local_search(seed=i)
+            self.local_search(seed=self.seed + i)
         elapsed_time = time.time() - start
-        self.result = Result(calculation_time=elapsed_time, objective=self.__objective)
+        self.result = Result(
+            calculation_time=elapsed_time, objective=max(self.objectives, default=None)
+        )
 
     def local_search(self, seed: int = 0) -> None:
         """局所探索を1度実行"""
@@ -35,13 +39,17 @@ class MultiLocalSearch(BaseAlgorithm):
 
         counter = 0
         while True:
+            self.xs.append(current_x)
+            self.zs.append(current_z)
+            self.objectives.append(current_objective)
+
             # 近傍を取得
             x_neighbors = self.get_neighbors(current_x)
             best_x_neighbor, best_z_neighbor, best_objective = self.get_best_neighbor(
                 x_neighbors=x_neighbors
             )
             logger.info(f"current_objective: {current_objective}")
-            # 探索した解が保持しているものよりも大きければ更新
+            # 近傍解で今よりも良い解があれば移動する
             if best_objective > current_objective:
                 current_objective = best_objective
                 current_x = best_x_neighbor
@@ -52,10 +60,6 @@ class MultiLocalSearch(BaseAlgorithm):
             counter += 1
             if counter > 100000:
                 raise Exception("Infinite Loop Error")
-
-        # 近傍解で今よりも良い解があれば移動する
-        if current_objective > self.__objective:
-            self.__objective = current_objective
 
     def get_initial_solution(self, seed: int = 0) -> tuple[dict[int, int], dict[int, int]]:
         """初期の状態を生成"""
@@ -108,7 +112,7 @@ class MultiLocalSearch(BaseAlgorithm):
                     linear_sum += self.constant.a[m, mp, t] * self.constant.phi[m, mp, k]
                 for d in self.index_set.D[m]:
                     linear_sum += self.constant.a[m, d, t] * self.constant.g[m, d]
-                if linear_sum <= self.constant.b[m, t]:
+                if linear_sum < self.constant.b[m, t]:
                     # 左に分岐
                     t = t * 2 + 1
                 else:

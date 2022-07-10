@@ -4,13 +4,13 @@ import itertools
 
 import numpy as np
 
-from src.models.po_L.model import Constant, IndexSet
-from src.models.po_L.params import Parameter
-from src.processing.binary_tree import depth2branchnodes, depth2leaves, leaf2LtRt
+from src.optimization.models.POORT_L.model import Constant, IndexSet
+from src.optimization.params import ArtificialDataParameter, RealDataParameter
+from src.optimization.processing.binary_tree import depth2branchnodes, depth2leaves, leaf2LtRt
 
 
-def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
-    """サンプルデータを作成s"""
+def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
+    """人工的にモデルのパラメータを生成"""
     # 集合を作成
     M = list(range(params.num_of_items))
     K = list(range(params.num_of_prices))
@@ -45,7 +45,7 @@ def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
         (m, mp, k): round(scale_price(base_price, price_max, unit_price, k), 3)
         for m, mp, k in itertools.product(M, M, K)
     }
-    base_seed = params.base_seed
+    base_seed = params.seed
     a, b, g, epsilon, epsilon_max, beta = dict(), dict(), dict(), dict(), dict(), dict()
     for m in M:
         epsilon[m] = 0.001
@@ -78,3 +78,7 @@ def make_sample_input(params: Parameter) -> tuple[IndexSet, Constant]:
         beta=beta, phi=phi, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
     )
     return index_set, constant
+
+
+def make_real_input(params: RealDataParameter) -> tuple[IndexSet, Constant]:
+    """実際のデータからモデルのパラメータを生成"""

@@ -14,5 +14,8 @@ format:
 test:
 	poetry run pytest .
 
-simulation:
-	poetry run python src/main.py
+artificial:
+	poetry run python src/run_artificial.py
+
+real-world:
+	poetry run python src/run_realworld.py

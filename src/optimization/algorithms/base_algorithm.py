@@ -1,13 +1,11 @@
 from abc import ABCMeta, abstractmethod
 
-from src.models.po_L.params import Parameter
-
 
 class BaseAlgorithm(metaclass=ABCMeta):
     """アルゴリズムの抽象基底クラス"""
 
-    def __init__(self, params: Parameter):
-        self.params = params
+    def __init__(self, model):
+        self.model = model
         self.result = None
 
     @abstractmethod

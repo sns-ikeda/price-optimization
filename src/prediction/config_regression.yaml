@@ -1,0 +1,4 @@
+regression:
+  model:
+    - ort
+    - nr
