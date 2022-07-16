@@ -40,8 +40,9 @@ class Variable:
     def __init__(self, index_set: IndexSet, constant: Constant):
         self.index_set = index_set
         self.constant = constant
-        self.u: dict[tuple[int, int, int, int], pulp.LpVariable] = dict()
-        self.v: dict[tuple[int, int, int, int], pulp.LpVariable] = dict()
+        self.p: dict[tuple[int], pulp.LpVariable] = dict()
+        self.q: dict[tuple[int], pulp.LpVariable] = dict()
+        self.u: dict[tuple[int, int], pulp.LpVariable] = dict()
         self.x: dict[tuple[int, int], pulp.LpVariable] = dict()
         self.z: dict[tuple[int, int], pulp.LpVariable] = dict()
 
@@ -49,20 +50,11 @@ class Variable:
 
     def _set_variables(self) -> None:
         for m in self.index_set.M:
-            for mp, k, kp, t in itertools.product(
-                self.index_set.M, self.index_set.K, self.index_set.K, self.index_set.TL[m]
-            ):
-                self.u[m, mp, k, kp, t] = pulp.LpVariable(
-                    f"u[{m}_{mp}_{k}_{kp}_{t}]", cat=pulp.LpContinuous, lowBound=0, upBound=1
-                )
-            for k, t in itertools.product(self.index_set.K, self.index_set.TL[m]):
-                self.v[m, k, t] = pulp.LpVariable(
-                    f"v[{m}_{k}_{t}]", cat=pulp.LpContinuous, lowBound=0, upBound=1
-                )
-
+            self.p[m] = pulp.LpVariable(f"p[{m}]", cat=pulp.LpContinuous)
+            self.q[m] = pulp.LpVariable(f"q[{m}]", cat=pulp.LpContinuous)
             for k in self.index_set.K:
                 self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
-
+                self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous)
             for t in self.index_set.TL[m]:
                 self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat=pulp.LpBinary)
 
@@ -81,27 +73,8 @@ class ObjectiveFunctionMixin:
 
     def set_objective_function(self) -> None:
         objective_function = 0
-        for m in self.index_set.M:
-            for mp, k, kp, t in itertools.product(
-                self.index_set.M, self.index_set.K, self.index_set.K, self.index_set.TL[m]
-            ):
-                objective_function += (
-                    self.constant.beta[m, mp, t]
-                    * self.constant.phi[m, mp, k]
-                    * self.constant.P[m, k]
-                    * self.variable.u[m, mp, k, kp, t]
-                )
-
-            for k, t, d in itertools.product(
-                self.index_set.K, self.index_set.TL[m], self.index_set.D[m] + self.index_set.D_[m]
-            ):
-                objective_function += (
-                    self.constant.beta[m, d, t]
-                    * self.constant.P[m, k]
-                    * self.constant.g[m, d]
-                    * self.variable.v[m, k, t]
-                )
-
+        for m, k in itertools.product(self.index_set.M, self.index_set.K):
+            objective_function += self.constant.P[m, k] * self.variable.u[m, k]
         self.problem += objective_function, "Objective Function"
 
 
@@ -112,11 +85,33 @@ class ConstraintsMixin:
     problem: pulp.LpProblem
 
     def set_constraints(self) -> None:
+        self._set_q_constraints()
         self._set_branch_constraints()
         self._set_leafnode_constraints()
         self._set_price_constraints()
-        self._set_xxz2u_constraints()
-        self._set_xz2v_constraints()
+        self._set_p_constraints()
+        self._set_u_constraints()
+
+    def _set_q_constraints(self) -> None:
+        for m in self.index_set.M:
+            for t in self.index_set.TL[m]:
+                self.problem += self.variable.q[m] - pulp.lpSum(
+                    self.constant.beta[m, mp, t] * self.variable.p[mp] for mp in self.index_set.M
+                ) - pulp.lpSum(
+                    self.constant.beta[m, d, t] * self.constant.g[m, d]
+                    for d in self.index_set.D[m] + self.index_set.D_[m]
+                ) >= -self.constant.big_M * (
+                    1 - self.variable.z[m, t]
+                )
+
+                self.problem += self.variable.q[m] - pulp.lpSum(
+                    self.constant.beta[m, mp, t] * self.variable.p[mp] for mp in self.index_set.M
+                ) - pulp.lpSum(
+                    self.constant.beta[m, d, t] * self.constant.g[m, d]
+                    for d in self.index_set.D[m] + self.index_set.D_[m]
+                ) <= self.constant.big_M * (
+                    1 - self.variable.z[m, t]
+                )
 
     def _set_branch_constraints(self) -> None:
         for m in self.index_set.M:
@@ -162,27 +157,23 @@ class ConstraintsMixin:
         for m in self.index_set.M:
             self.problem += pulp.lpSum(self.variable.x[m, k] for k in self.index_set.K) == 1
 
-    def _set_xxz2u_constraints(self) -> None:
+    def _set_p_constraints(self) -> None:
         for m in self.index_set.M:
-            for mp, k, kp, t in itertools.product(
-                self.index_set.M, self.index_set.K, self.index_set.K, self.index_set.TL[m]
-            ):
-                self.problem += (
-                    self.variable.x[m, k] + self.variable.x[mp, kp] + self.variable.z[m, t]
-                    <= self.variable.u[m, mp, k, kp, t] + 2
-                )
-                self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.x[mp, kp]
-                self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.x[m, k]
-                self.problem += self.variable.u[m, mp, k, kp, t] <= self.variable.z[m, t]
+            self.problem += self.variable.p[m] == pulp.lpSum(
+                self.constant.P[m, k] * self.variable.x[m, k] for k in self.index_set.K
+            )
 
-    def _set_xz2v_constraints(self) -> None:
-        for m in self.index_set.M:
-            for k, t in itertools.product(self.index_set.K, self.index_set.TL[m]):
-                self.problem += (
-                    self.variable.x[m, k] + self.variable.z[m, t] <= self.variable.v[m, k, t] + 1
-                )
-                self.problem += self.variable.v[m, k, t] <= self.variable.x[m, k]
-                self.problem += self.variable.v[m, k, t] <= self.variable.z[m, t]
+    def _set_u_constraints(self) -> None:
+        for m, k in itertools.product(self.index_set.M, self.index_set.K):
+            self.problem += -self.constant.big_M * self.variable.x[m, k] <= self.variable.u[m, k]
+            self.problem += self.variable.u[m, k] <= self.constant.big_M * self.variable.x[m, k]
+            self.problem += (
+                self.variable.q[m] - self.constant.big_M * (1 - self.variable.x[m, k])
+                <= self.variable.u[m, k]
+            )
+            self.problem += self.variable.u[m, k] <= self.variable.q[m] + self.constant.big_M * (
+                1 - self.variable.x[m, k]
+            )
 
 
 class Model(ObjectiveFunctionMixin, ConstraintsMixin):
@@ -194,7 +185,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     def __init__(self, index_set: IndexSet, constant: Constant):
         self.index_set = index_set
         self.constant = constant
-        self.name = "POORT-L"
+        self.name = "POORT-L+"
         self.result = None
         self.calculation_time = None
         self.objective = None

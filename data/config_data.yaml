@@ -5,9 +5,9 @@ artificial:
   params:
     num_of_items:
       - 1
-      - 2
+      - 3
       - 5
-    num_of_prices: 2
-    num_of_other_features: 1
-    depth_of_trees: 2
+    num_of_prices: 3
+    num_of_other_features: 2
+    depth_of_trees: 3
     base_price: 1000

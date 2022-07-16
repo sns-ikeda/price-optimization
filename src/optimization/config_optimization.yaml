@@ -1,9 +1,13 @@
 solver: "Cbc"
 model:
-  POORT_L:
+  # POORT_L:
+    # algorithm:
+      # - solver_naive
+      # - solver_heuristics
+      # - multi_start_local_search
+  POORT_L_alpha:
     algorithm:
       - solver_naive
-      # - solver_heuristics
       - multi_start_local_search
   # PONR:
   #   algorithm:
