@@ -1,4 +1,3 @@
-solver: "Cbc"
 model:
   POORT_L:
     algorithm:
