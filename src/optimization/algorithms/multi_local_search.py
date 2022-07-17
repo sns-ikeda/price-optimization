@@ -44,7 +44,7 @@ class MultiLocalSearch(BaseAlgorithm):
             self.objectives.append(current_objective)
 
             # 近傍を取得
-            x_neighbors = self.get_neighbors(current_x)
+            x_neighbors = self.get_neighbors(x=current_x, num_of_price=len(self.index_set.K))
             best_x_neighbor, best_z_neighbor, best_objective = self.get_best_neighbor(
                 x_neighbors=x_neighbors
             )
@@ -85,14 +85,15 @@ class MultiLocalSearch(BaseAlgorithm):
         q = np.array(q)
         return np.dot(p, q)
 
-    def get_neighbors(self, x: dict[int, int]) -> list[dict[int, int]]:
+    @staticmethod
+    def get_neighbors(x: dict[int, int], num_of_price: int) -> list[dict[int, int]]:
         """近傍解を取得"""
         x_neighbors = []
         for m, k in x.items():
             k_neighbors = []
             if k > 0:
                 k_neighbors.append(k - 1)
-            if k < max(self.index_set.K):
+            if k < num_of_price - 1:
                 k_neighbors.append(k + 1)
             for k_neighbor in k_neighbors:
                 x_neighbor = copy.deepcopy(x)
