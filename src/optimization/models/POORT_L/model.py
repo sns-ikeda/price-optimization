@@ -87,7 +87,7 @@ class ObjectiveFunctionMixin:
             ):
                 objective_function += (
                     self.constant.beta[m, mp, t]
-                    * self.constant.phi[m, mp, k]
+                    * self.constant.phi[m, mp, kp]
                     * self.constant.P[m, k]
                     * self.variable.u[m, mp, k, kp, t]
                 )

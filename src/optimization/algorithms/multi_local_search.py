@@ -77,7 +77,7 @@ class MultiLocalSearch(BaseAlgorithm):
         for m, t in z.items():
             q_m = 0
             for mp in z.keys():
-                k = x[m]
+                k = x[mp]
                 q_m += self.constant.beta[m, mp, t] * self.constant.phi[m, mp, k]
             for d in self.index_set.D[m] + self.index_set.D_[m]:
                 q_m += self.constant.beta[m, d, t] * self.constant.g[m, d]
