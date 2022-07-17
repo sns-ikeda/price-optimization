@@ -185,7 +185,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     def __init__(self, index_set: IndexSet, constant: Constant):
         self.index_set = index_set
         self.constant = constant
-        self.name = "POORT-L+"
+        self.name = "POORT_L_alpha"
         self.result = None
         self.calculation_time = None
         self.objective = None
@@ -220,7 +220,6 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
             solver = pulp.PULP_CBC_CMD(timeLimit=TimeLimit)
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
-        self.result = Result(
-            calculation_time=elapsed_time, objective=self.problem.objective.value()
-        )
+        self.objective = self.problem.objective.value()
+        self.result = Result(calculation_time=elapsed_time, objective=self.objective)
         self.variable.to_value()
