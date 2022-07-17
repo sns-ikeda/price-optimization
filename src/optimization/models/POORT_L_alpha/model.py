@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import pulp
@@ -196,8 +197,8 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.set_objective_function()
         self.set_constraints()
 
-    def write_lp(self) -> None:
-        self.problem.writeLP(DATA_DIR / "output" / "lpfile" / f"{self.name}.lp")
+    def write_lp(self, dir_path: Optional[Path] = DATA_DIR / "results" / "lpfile") -> None:
+        self.problem.writeLP(str(dir_path / f"{self.name}.lp"))
 
     def solve(
         self,
@@ -206,10 +207,10 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         NoRelHeurTime: float = 0,
         MIPFocus: int = 0,
     ) -> None:
+        # モデルを構築
         self._set_model()
-        # 求解
-        start = time.time()
-        if solver in ["gurobi", "GUROBI", "Gurobi"]:
+        # solverの設定
+        if solver in ["gurobi", "GUROBI", "Gurobi", "grb", "GRB", "Grb"]:
             try:
                 solver = pulp.GUROBI(
                     timeLimit=TimeLimit, NoRelHeurTime=NoRelHeurTime, MIPFocus=MIPFocus
@@ -218,8 +219,12 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:
             solver = pulp.PULP_CBC_CMD(timeLimit=TimeLimit)
+        # 求解
+        start = time.time()
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
+        # 結果の格納
         self.objective = self.problem.objective.value()
-        self.result = Result(calculation_time=elapsed_time, objective=self.objective)
         self.variable.to_value()
+        self.result = Result(calculation_time=elapsed_time, objective=self.objective)
+        self.write_lp()
