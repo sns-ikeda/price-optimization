@@ -17,5 +17,5 @@ test:
 artificial:
 	poetry run python src/run_artificial.py
 
-real-world:
+realworld:
 	poetry run python src/run_realworld.py

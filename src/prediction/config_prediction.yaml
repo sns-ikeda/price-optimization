@@ -1,4 +1,4 @@
-regression:
+prediction:
   model:
     - ort
     - nr
