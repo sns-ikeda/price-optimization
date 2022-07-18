@@ -7,5 +7,5 @@ solver_heuristics:
   MIPFocus: 1
   TimeLimit: 300
 multi_start_local_search:
-  num_multi_start: 10
+  num_multi_start: 3
   seed: 0

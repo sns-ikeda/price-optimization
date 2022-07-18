@@ -1,13 +1,26 @@
 realworld:
-  - breakfast
+  breakfast:
+    store_num: 25027
+    category: "COLD CEREAL"
+    base_cols:
+        - "YEAR"
+        - "MONTH"
+        - "DAY"
+        - "PRICE"
+        - "DESCRIPTION"
+        - "UNITS"
+    master_cols:
+        - "YEAR"
+        - "MONTH"
+        - "DAY"
 
 artificial:
   params:
     num_of_items:
-      - 1
+      # - 1
       - 3
       - 5
     num_of_prices: 3
-    num_of_other_features: 2
+    num_of_other_features: 1
     depth_of_trees: 3
     base_price: 1000

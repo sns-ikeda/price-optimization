@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 
-from src.utils.paths import ALGO_DIR, DATA_DIR, OPT_DIR
+from src.utils.paths import ALGO_DIR, DATA_DIR, OPT_DIR, SRC_DIR
 
 
 def read_config(filepath: Path | str) -> dict[str, Any]:
@@ -15,7 +15,7 @@ def read_config(filepath: Path | str) -> dict[str, Any]:
 
 
 # シミュレーションの設定を取得
-CONFIG_SIM = read_config("config_simulation.yaml")
+CONFIG_SIM = read_config(SRC_DIR / "config_simulation.yaml")
 
 # データの設定を取得
 CONFIG_DATA = read_config(DATA_DIR / "config_data.yaml")
