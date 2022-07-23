@@ -1,6 +1,6 @@
 export PYTHONPATH := $(PWD)
 
-.PHONY: format
+.PHONY: pre-commit
 pre-commit:
 	poetry run pre-commit install
 
@@ -16,8 +16,8 @@ test:
 
 .PHONY: artificial
 artificial:
-	poetry run python src/run_artificial.py
+	poetry run python src/main.py --data_type artificial
 
 .PHONY: realworld
 realworld:
-	poetry run python src/run_realworld.py
+	poetry run python src/main.py --data_type realworld

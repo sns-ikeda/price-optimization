@@ -22,13 +22,14 @@ def transform_artificial_results(
     return transformed_results_dict
 
 
-def average_results(
-    results_dict: dict[str, dict[str, dict[int, list[float]]]]
+def average_results_dict(
+    results_dict: dict[str, dict[str, dict[int, list[float]]]], attribute: str
 ) -> dict[str, dict[str, dict[int, float]]]:
     """計算結果を平均"""
     avg_results_dict = defaultdict(lambda: defaultdict(dict))
     for model, algo_result_dict in results_dict.items():
         for algo, noi_result_dict in algo_result_dict.items():
             for num_of_item, results in noi_result_dict.items():
-                avg_results_dict[model][algo][num_of_item] = np.mean(results).round(3)
+                values = [getattr(result, attribute) for result in results]
+                avg_results_dict[model][algo][num_of_item] = np.mean(values).round(3)
     return avg_results_dict
