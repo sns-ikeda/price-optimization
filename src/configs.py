@@ -24,4 +24,4 @@ CONFIG_DATA = read_config(DATA_DIR / "config_data.yaml")
 CONFIG_OPT = read_config(OPT_DIR / "config_optimization.yaml")
 
 # アルゴリズムの設定を取得
-CONFIG_ALG = read_config(ALGO_DIR / "config_algorithm.yaml")
+CONFIG_ALGO = read_config(ALGO_DIR / "config_algorithm.yaml")

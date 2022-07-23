@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from collections import defaultdict
 from typing import Optional
 
-from src.configs import CONFIG_ALG, CONFIG_DATA, CONFIG_OPT
+from src.configs import CONFIG_ALGO, CONFIG_DATA, CONFIG_OPT
 from src.optimization.params import ArtificialDataParameter, RealDataParameter
 from src.optimization.processing.result_processor import average_results_dict
 from src.optimization.result import Result
@@ -43,7 +43,7 @@ def main():
         data_type=data_type,
         config_data=CONFIG_DATA,
         config_opt=CONFIG_OPT,
-        config_algo=CONFIG_ALG,
+        config_algo=CONFIG_ALGO,
     )
     simulator.run()
 
