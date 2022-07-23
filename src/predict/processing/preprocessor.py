@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from src.configs import CONFIG_DATA
-from src.prediction.processing.data_loader import data_loader
+from src.predict.processing.data_loader import data_loader
 
 
 def filter_df(df: pd.DataFrame, category: Optional[str] = None, store_num: Optional[int] = None):

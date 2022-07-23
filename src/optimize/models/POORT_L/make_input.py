@@ -4,9 +4,9 @@ import itertools
 
 import numpy as np
 
-from src.optimization.models.POORT_L.model import Constant, IndexSet
-from src.optimization.params import ArtificialDataParameter, RealDataParameter
-from src.optimization.processing.binary_tree import depth2branchnodes, depth2leaves, leaf2LtRt
+from src.optimize.models.POORT_L.model import Constant, IndexSet
+from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.processing.binary_tree import depth2branchnodes, depth2leaves, leaf2LtRt
 
 
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:

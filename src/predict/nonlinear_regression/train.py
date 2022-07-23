@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from src.configs import CONFIG_DATA
-from src.prediction.processing.preprocessor import load_preprocess, make_target_data
+from src.predict.processing.preprocessor import load_preprocess, make_target_data
 
 
 def train(dataset: str):

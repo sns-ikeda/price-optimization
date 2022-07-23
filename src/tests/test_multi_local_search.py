@@ -1,4 +1,4 @@
-from src.optimization.algorithms.multi_local_search import MultiLocalSearch
+from src.optimize.algorithms.multi_local_search import MultiLocalSearch
 
 
 def test_get_neighbors():

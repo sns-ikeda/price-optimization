@@ -1,4 +1,4 @@
-from src.optimization.processing.binary_tree import (
+from src.optimize.processing.binary_tree import (
     depth2allnodes,
     depth2branchnodes,
     depth2leaves,

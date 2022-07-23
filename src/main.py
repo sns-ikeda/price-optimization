@@ -5,9 +5,9 @@ from collections import defaultdict
 from typing import Optional
 
 from src.configs import CONFIG_ALGO, CONFIG_DATA, CONFIG_OPT
-from src.optimization.params import ArtificialDataParameter, RealDataParameter
-from src.optimization.processing.result_processor import average_results_dict
-from src.optimization.result import Result
+from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.processing.result_processor import average_results_dict
+from src.optimize.result import Result
 from src.simulator import Simulator
 from src.utils.dict_converter import dict2json
 from src.utils.flatten_dict import flatten_dict

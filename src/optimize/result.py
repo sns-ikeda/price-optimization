@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from src.optimization.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import ArtificialDataParameter, RealDataParameter
 
 
 @dataclass(frozen=False)

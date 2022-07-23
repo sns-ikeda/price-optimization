@@ -3,10 +3,10 @@ from __future__ import annotations
 from importlib.machinery import SourceFileLoader
 from typing import Any, Optional, TypeVar
 
-from src.optimization.algorithms import ALGORITHMS
-from src.optimization.model_input import ModelInput
-from src.optimization.params import ArtificialDataParameter, RealDataParameter
-from src.optimization.result import Result
+from src.optimize.algorithms import ALGORITHMS
+from src.optimize.model_input import ModelInput
+from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.result import Result
 from src.utils.paths import MODEL_DIR
 
 IndexSet = TypeVar("IndexSet")

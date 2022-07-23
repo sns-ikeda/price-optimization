@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.optimization.algorithms.base_algorithm import BaseAlgorithm
+from src.optimize.algorithms.base_algorithm import BaseAlgorithm
 
 
 class SolverNaive(BaseAlgorithm):

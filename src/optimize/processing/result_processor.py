@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from src.optimization.result import Result
+from src.optimize.result import Result
 
 
 def transform_artificial_results(

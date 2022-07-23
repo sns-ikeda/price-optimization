@@ -7,8 +7,8 @@ import numpy as np
 from logzero import logger
 from tqdm import tqdm
 
-from src.optimization.algorithms.base_algorithm import BaseAlgorithm
-from src.optimization.result import Result
+from src.optimize.algorithms.base_algorithm import BaseAlgorithm
+from src.optimize.result import Result
 
 
 class MultiLocalSearch(BaseAlgorithm):
