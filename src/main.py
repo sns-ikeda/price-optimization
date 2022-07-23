@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from collections import defaultdict
 from typing import Optional
 
-from src.configs import CONFIG_ALGO, CONFIG_DATA, CONFIG_OPT
+from src.configs import CONFIG_ALGO, CONFIG_DATA, CONFIG_OPT, CONFIG_SIM
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.processing.result_processor import average_results_dict
 from src.optimize.result import Result
@@ -39,13 +39,14 @@ def main():
     if data_type is None:
         return
 
+    num_iteration = CONFIG_SIM["num_iteration"]
     simulator = Simulator(
         data_type=data_type,
         config_data=CONFIG_DATA,
         config_opt=CONFIG_OPT,
         config_algo=CONFIG_ALGO,
     )
-    simulator.run()
+    simulator.run(num_iteration)
 
     if data_type == "artificial":
         transformed_results_dict = defaultdict(lambda: defaultdict(dict))
