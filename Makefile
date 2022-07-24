@@ -4,11 +4,19 @@ export PYTHONPATH := $(PWD)
 pre-commit:
 	poetry run pre-commit install
 
+.PHONY: lint
+lint:
+	poetry run flake8 .
+
 .PHONY: format
 format:
 	poetry run isort . & poetry run black .
 	poetry run autoflake -ri --remove-all-unused-imports --ignore-init-module-imports --remove-unused-variables .
-	poetry run flake8 .
+
+.PHONY: clean
+clean:
+	find . -type f -name "*.py[co]" -delete
+	find . -type d -name "__pycache__" -delete
 
 .PHONY: test
 test:
