@@ -13,6 +13,7 @@ IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")
 Model = TypeVar("Model")
 Algorithm = TypeVar("Algorithm")
+Class_or_func = TypeVar("Class_or_func")
 
 
 class Simulator:
@@ -72,14 +73,22 @@ class Simulator:
         """実データによるシミュレーションを実行"""
 
     @staticmethod
+    def get_object_from_module(module_path: str, class_or_func_name: str) -> Class_or_func:
+        """モジュールからクラスや関数を取得"""
+        module_name = str(module_path).split("/")[-1].split(".")[0]
+        module = SourceFileLoader(module_name, module_path).load_module()
+        class_or_func = getattr(module, class_or_func_name)
+        return class_or_func
+
+    @staticmethod
     def make_model_input(
         model_name: str, data_param: ArtificialDataParameter | RealDataParameter
     ) -> ModelInput:
         """モデルの入力データを作成"""
-        module_name = "make_input"
-        module_path = str(MODEL_DIR / model_name / (module_name + ".py"))
-        make_input_module = SourceFileLoader(module_name, module_path).load_module()
-        make_input = getattr(make_input_module, f"make_{data_param.data_type}_input")
+        module_path = str(MODEL_DIR / model_name / "make_input.py")
+        make_input = Simulator.get_object_from_module(
+            module_path, f"make_{data_param.data_type}_input"
+        )
         index_set, constant = make_input(params=data_param)
         model_input = ModelInput(model_name=model_name, index_set=index_set, constant=constant)
         return model_input
@@ -87,10 +96,8 @@ class Simulator:
     @staticmethod
     def make_model(model_input: ModelInput) -> Model:
         """最適化モデルを構築"""
-        module_name = "model"
-        module_path = str(MODEL_DIR / model_input.model_name / (module_name + ".py"))
-        model_module = SourceFileLoader(module_name, module_path).load_module()
-        model_class = getattr(model_module, "Model")
+        module_path = str(MODEL_DIR / model_input.model_name / "model.py")
+        model_class = Simulator.get_object_from_module(module_path, "Model")
         model = model_class(index_set=model_input.index_set, constant=model_input.constant)
         return model
 
