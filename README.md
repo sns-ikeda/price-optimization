@@ -6,16 +6,12 @@
 - Poetry: `1.1.13`
 
 ## Setup
-### Poetry
-- poetryがインストールされていない場合は，pipにてインストール
+- poetryにて実行環境を構築するため，下記コマンドを実行  
+（poetryがインストールされていない場合は，pipにてインストールされる）
 ```shell
-$ pip install poetry
+$ make environment
 ```
-- 仮想環境を構築
-```shell
-$ poetry install
-```
-- ライブラリ追加時は `poetry add {hoge}` で追加する
+- ライブラリを追加したい場合は `poetry add {hoge}` にて追加する
 
 ## How to Run
 ### preparation

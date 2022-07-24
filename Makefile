@@ -1,5 +1,10 @@
 export PYTHONPATH := $(PWD)
 
+.PHONY: environment
+environment:
+	pip install poetry
+	poetry install
+
 .PHONY: pre-commit
 pre-commit:
 	poetry run pre-commit install
