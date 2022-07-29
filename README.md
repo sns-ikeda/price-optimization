@@ -20,7 +20,6 @@ $ make environment
     - 使用するデータの設定：`data/config_data.yaml`
     - 最適化モデルの設定：`src/optimize/config_optimization.yaml`
     - アルゴリズムの設定：`src/optimize/algorithms/config_algorithm.yaml`
-    - 予測モデルの設定：`src/predict/config_prediction.yaml`
 ### execution
 - 下記コマンドにてシミュレーションを実行
 
