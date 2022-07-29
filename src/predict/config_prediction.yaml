@@ -1,4 +1,0 @@
-prediction:
-  model:
-    - ort
-    - nr

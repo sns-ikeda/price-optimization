@@ -49,11 +49,12 @@ def main():
     simulator.run(num_iteration)
 
     if data_type == "artificial":
+        # 可視化しやすいように結果を整形
         transformed_results_dict = defaultdict(lambda: defaultdict(dict))
         for data_param in simulator.data_params:
             _result_dict = {
                 model_algo_pair: find_results_by_data_param(results=results, data_param=data_param)
-                for model_algo_pair, results in simulator.results_dict.items()
+                for model_algo_pair, results in simulator.artificial_results_dict.items()
             }
             for model_algo_pair, results in _result_dict.items():
                 model_name = model_algo_pair[0]

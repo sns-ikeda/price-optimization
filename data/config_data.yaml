@@ -2,6 +2,7 @@ realworld:
   breakfast:
     store_num: 25027
     category: "COLD CEREAL"
+    target_col: "UNITS"
     base_cols:
         - "YEAR"
         - "MONTH"
@@ -13,6 +14,7 @@ realworld:
         - "YEAR"
         - "MONTH"
         - "DAY"
+    num_of_prices: 5
 
 artificial:
   params:

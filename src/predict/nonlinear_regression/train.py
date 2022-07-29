@@ -36,6 +36,7 @@ def train(dataset: str):
             logger.info(
                 "RMSE test data: {0}".format(np.sqrt(mean_squared_error(y_test, y_pred)))
             )  # 検証データを用いたときの平均二乗誤差を出力
+            # coef_dict = {X.columns[i]: coef for i, coef in enumerate(lr.coef_)}
 
             # 結果をプロット
             x_col = "PRICE" + "_" + product

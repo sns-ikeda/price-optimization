@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from importlib.machinery import SourceFileLoader
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
-from src.optimize.algorithms import ALGORITHMS
-from src.optimize.model_input import ModelInput
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+from src.data_preprocess.data_preprocessor import DataPreprocessor
+from src.optimize.optimizer import Optimizer
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.result import Result
-from src.utils.paths import MODEL_DIR
+from src.predict.predictor import MakePredictor, Predictor
 
 IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")
-Model = TypeVar("Model")
 Algorithm = TypeVar("Algorithm")
-Class_or_func = TypeVar("Class_or_func")
 
 
 class Simulator:
@@ -23,14 +23,13 @@ class Simulator:
         config_data: dict[str, Any],
         config_opt: dict[str, Any],
         config_algo: dict[str, Any],
-        config_pred: Optional[dict[str, Any]] = None,
-    ):
+    ) -> None:
         self.data_type = data_type
         self.config_data = config_data
         self.config_opt = config_opt
         self.config_algo = config_algo
-        self.config_prediction = config_pred
-        self.results_dict: dict[tuple[str, str], list[Result]] = dict()
+        self.artificial_results_dict: dict[tuple[str, str], list[Result]] = dict()
+        self.realworld_results_dict: dict[tuple[str, str], list[Result]] = dict()
         self.data_params: list[ArtificialDataParameter | RealDataParameter] = self.make_data_params(
             config_data=config_data, data_type=data_type
         )
@@ -43,67 +42,77 @@ class Simulator:
 
     def run_artificial(self, iteration: int) -> None:
         """人工データによるシミュレーションを実行"""
-        model_settings = self.config_opt["model"]
+        model_algo_names = self.make_model_algo_names()
         algo_settings = self.config_algo
+        for model_name, algo_name in model_algo_names:
+            results: list[Result] = []
+            for data_param in self.data_params:
+                for i in range(iteration):
+                    data_param.seed = i
+                    optimizer = Optimizer(
+                        model_name=model_name, algo_name=algo_name, data_param=data_param
+                    )
+                    optimizer.run(**algo_settings[algo_name])
+                    results.append(optimizer.result)
+            self.artificial_results_dict[(model_name, algo_name)] = results
+
+    def run_realworld(self) -> None:
+        """実データによるシミュレーションを実行"""
+        model_algo_names = self.make_model_algo_names()
+        algo_settings = self.config_algo
+
+        for dataset, data_settings in self.config_data["realworld"].items():
+            data_preprocessor = DataPreprocessor(dataset)
+            processed_df = data_preprocessor.run(**data_settings)
+            train_df, test_df = train_test_split(
+                processed_df, train_size=0.7, test_size=0.3, shuffle=False
+            )
+            num_of_prices = data_settings["num_of_prices"]
+            base_target_col = data_settings["target_col"]
+            target_cols = [col for col in train_df.columns if base_target_col in col]
+
+            for model_name, algo_name in model_algo_names:
+                predictor_name = self.config_opt["model"][model_name]["prediction"]
+                make_predictor = MakePredictor(
+                    train_df=train_df, target_cols=target_cols, model_name=predictor_name
+                )
+                make_predictor.run()
+                data_param = RealDataParameter(
+                    item2predictor=make_predictor.item2predictor, num_of_prices=num_of_prices
+                )
+                optimizer = Optimizer(
+                    model_name=model_name, algo_name=algo_name, data_param=data_param
+                )
+                optimizer.run(**algo_settings[algo_name])
+                result = Simulator.evaluate(
+                    test_df=test_df,
+                    target_cols=target_cols,
+                    item2predictor=make_predictor.item2predictor,
+                    opt_prices=optimizer.opt_prices,
+                )
+                self.realworld_results_dict[model_name][algo_name] = result
+
+    @staticmethod
+    def evaluate(
+        test_df: pd.DataFrame,
+        target_cols: list[str],
+        item2predictor: dict[str, Predictor],
+        opt_prices: dict[str, float],
+    ):
+        pass
+
+    def make_model_algo_names(self) -> tuple[str, str]:
+        model_settings = self.config_opt["model"]
         model_algo_names = [
             (model_name, algo_name)
             for model_name in model_settings
             for algo_name in model_settings[model_name]["algorithm"]
         ]
-        for model_name, algo_name in model_algo_names:
-            algo_class = ALGORITHMS.get(algo_name, None)
-            if algo_class is None:
-                continue
-
-            results: list[Result] = []
-            for data_param in self.data_params:
-                for i in range(iteration):
-                    data_param.seed = i
-                    model_input = self.make_model_input(
-                        model_name=model_name, data_param=data_param
-                    )
-                    model = self.make_model(model_input)
-                    algorithm = algo_class(model=model, **algo_settings[algo_name])
-                    algorithm.run()
-                    algorithm.result.data_param = data_param
-                    results.append(algorithm.result)
-            self.results_dict[(model_name, algo_name)] = results
-
-    def run_realworld(self) -> None:
-        """実データによるシミュレーションを実行"""
-
-    @staticmethod
-    def get_object_from_module(module_path: str, class_or_func_name: str) -> Class_or_func:
-        """モジュールからクラスや関数を取得"""
-        module_name = str(module_path).split("/")[-1].split(".")[0]
-        module = SourceFileLoader(module_name, module_path).load_module()
-        class_or_func = getattr(module, class_or_func_name)
-        return class_or_func
-
-    @staticmethod
-    def make_model_input(
-        model_name: str, data_param: ArtificialDataParameter | RealDataParameter
-    ) -> ModelInput:
-        """モデルの入力データを作成"""
-        module_path = str(MODEL_DIR / model_name / "make_input.py")
-        make_input = Simulator.get_object_from_module(
-            module_path, f"make_{data_param.data_type}_input"
-        )
-        index_set, constant = make_input(params=data_param)
-        model_input = ModelInput(model_name=model_name, index_set=index_set, constant=constant)
-        return model_input
-
-    @staticmethod
-    def make_model(model_input: ModelInput) -> Model:
-        """最適化モデルを構築"""
-        module_path = str(MODEL_DIR / model_input.model_name / "model.py")
-        model_class = Simulator.get_object_from_module(module_path, "Model")
-        model = model_class(index_set=model_input.index_set, constant=model_input.constant)
-        return model
+        return model_algo_names
 
     @staticmethod
     def make_data_params(
-        config_data: dict[str, Any], data_type: str
+        config_data: dict[str, Any], data_type: str, **kwargs
     ) -> list[ArtificialDataParameter | RealDataParameter]:
         """シミュレーションで設定するパラメータの生成"""
         data_params = []
@@ -118,8 +127,4 @@ class Simulator:
                     base_price=param["base_price"],
                 )
                 data_params.append(data_param)
-        elif data_type == "realworld":
-            pass
-        else:
-            pass
         return data_params
