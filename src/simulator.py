@@ -63,14 +63,15 @@ class Simulator:
 
         for dataset, data_settings in self.config_data["realworld"].items():
             data_preprocessor = DataPreprocessor(dataset)
-            processed_df = data_preprocessor.run(**data_settings)
+            processed_df = data_preprocessor.preprocess(**data_settings)
             train_df, test_df = train_test_split(
                 processed_df, train_size=0.7, test_size=0.3, shuffle=False
             )
-            num_of_prices = data_settings["num_of_prices"]
-            base_target_col = data_settings["target_col"]
-            target_cols = [col for col in train_df.columns if base_target_col in col]
-
+            target_cols = data_preprocessor.get_target_cols(prefix=data_settings["target_col"])
+            items = [col.split("")[1] for col in target_cols]
+            item2prices = data_preprocessor.get_item2prices(
+                df=train_df, num_of_prices=data_settings["num_of_prices"], items=items
+            )
             for model_name, algo_name in model_algo_names:
                 predictor_name = self.config_opt["model"][model_name]["prediction"]
                 make_predictor = MakePredictor(
@@ -78,7 +79,7 @@ class Simulator:
                 )
                 make_predictor.run()
                 data_param = RealDataParameter(
-                    item2predictor=make_predictor.item2predictor, num_of_prices=num_of_prices
+                    item2predictor=make_predictor.item2predictor, item2prices=item2prices
                 )
                 optimizer = Optimizer(
                     model_name=model_name, algo_name=algo_name, data_param=data_param
