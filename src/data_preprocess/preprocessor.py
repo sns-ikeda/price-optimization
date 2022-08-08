@@ -15,6 +15,7 @@ class DataPreprocessor:
         self.item2index = dict()
         self.index2item = dict()
         self.processed_df = pd.DataFrame()
+        self.preprocessed = False
 
     @staticmethod
     def load_data(dataset: str) -> pd.DataFrame:
@@ -29,6 +30,7 @@ class DataPreprocessor:
         logger.info(f"# of rows [raw data]: {len(self.raw_df)}")
         self.processed_df = preprocess(self.raw_df, **kwargs)
         logger.info(f"# of rows [processed data]: {len(self.processed_df)}")
+        self.preprocessed = True
         return self.processed_df
 
     @staticmethod
@@ -44,8 +46,26 @@ class DataPreprocessor:
         return item2prices
 
     def get_target_cols(self, prefix: str = "UNITS") -> list[str]:
-        target_cols = [col for col in self.processed_df.columns if prefix in col]
+        if self.preprocessed:
+            target_cols = [col for col in self.processed_df.columns if prefix in col]
+        else:
+            raise Exception("Run preprocess before executing this method")
         return target_cols
+
+    def get_feature_cols(self, target_cols: list[str]) -> list[str]:
+        if self.preprocessed:
+            feature_cols = [col for col in self.processed_df.columns if col not in target_cols]
+        else:
+            raise Exception("Run preprocess before executing this method")
+        return feature_cols
+
+    @staticmethod
+    def get_label2item(target_cols: list[str]) -> dict[str, str]:
+        label2item = dict()
+        for col in target_cols:
+            item = col.split("_")[-1]
+            label2item[col] = item
+        return label2item
 
 
 def select_scaler(scaling_type: str = "standard"):

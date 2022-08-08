@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from src.data_preprocess.preprocessor import DataPreprocessor, select_scaler
+from src.evaluate.evaluator import Evaluator
 from src.optimize.optimizer import Optimizer
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.result import Result
@@ -74,11 +75,11 @@ class Simulator:
         # データセットごとの評価
         for dataset_name, data_settings in self.config_data["realworld"].items():
             # データの前処理
-            data_preprocessor = DataPreprocessor(dataset_name)
-            processed_df = data_preprocessor.preprocess(**data_settings)
-            target_cols = data_preprocessor.get_target_cols(prefix=data_settings["target_col"])
-            feature_cols = [col for col in processed_df.columns if col not in target_cols]
-            target_items = [col.split("_")[1] for col in target_cols]
+            dp = DataPreprocessor(dataset_name)
+            processed_df = dp.preprocess(**data_settings)
+            target_cols = dp.get_target_cols(prefix=data_settings["target_col"])
+            feature_cols = dp.get_feature_cols(target_cols=target_cols)
+            label2item = dp.get_label2item(target_cols=target_cols)
 
             train_df, test_df = train_test_split(
                 processed_df, train_size=0.7, test_size=0.3, shuffle=False
@@ -104,21 +105,22 @@ class Simulator:
                 predictors = PredictorHandler(
                     train_df=scaled_train_df,
                     test_df=scaled_test_df,
-                    target_cols=target_cols,
+                    label2item=label2item,
                     predictor_name=predictor_name,
                 )
                 predictors.run()
+
+                # 予測モデルの結果を格納
                 pred_results_dict[dataset_name][predictor_name] = predictors.result
                 dict2json(
                     target_dict=pred_results_dict,
                     save_path=RESULT_DIR / "json" / "pred_result.json",
                 )
-
                 # 商品ごとの価格候補を取得
-                item2prices = data_preprocessor.get_item2prices(
+                item2prices = dp.get_item2prices(
                     df=scaled_train_df,
                     num_of_prices=data_settings["num_of_prices"],
-                    items=target_items,
+                    items=list(label2item.values()),
                 )
                 data_param = RealDataParameter(
                     item2predictor=predictors.item2predictor, item2prices=item2prices
@@ -141,11 +143,18 @@ class Simulator:
     @staticmethod
     def evaluate(
         test_df: pd.DataFrame,
-        target_cols: list[str],
+        label2item: dict[str, str],
         item2predictor: dict[str, Predictor],
         opt_prices: dict[str, float],
     ):
-        pass
+        evaluator = Evaluator(
+            test_df=test_df,
+            label2item=label2item,
+            item2predictor=item2predictor,
+            opt_prices=opt_prices,
+        )
+        evaluator.run()
+        return evaluator.result
 
     def make_model_algo_names(self) -> tuple[str, str]:
         model_settings = self.config_opt["model"]
