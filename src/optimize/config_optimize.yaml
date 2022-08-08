@@ -1,0 +1,17 @@
+model:
+  # POORT_L:
+  #   algorithm:
+  #     - solver_naive
+  #     # - solver_heuristics
+  #     - multi_start_local_search
+  #   prediction: ORT_L
+  # POORT_L_alpha:
+  #   algorithm:
+  #     - solver_naive
+  #     # - solver_heuristics
+  #     - multi_start_local_search
+  #   prediction: ORT_L
+  POLR:
+    algorithm:
+      - solver_naive
+    prediction: linear_regression

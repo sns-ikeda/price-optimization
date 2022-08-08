@@ -1,0 +1,5 @@
+ORT_L:
+  scaling: "minmax"
+
+linear_regression:
+  scaling: "standard"

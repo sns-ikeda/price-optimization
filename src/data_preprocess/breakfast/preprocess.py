@@ -56,5 +56,6 @@ def preprocess(
         for col in df.columns.values
     ]
     df[master_cols] = df[master_cols].astype(int)
-    df = df.dropna(how="all", axis=1).sort_values(by=master_cols).reset_index(drop=True)
+    df = df.dropna(how="any", axis=1).sort_values(by=master_cols).reset_index(drop=True)
+
     return df
