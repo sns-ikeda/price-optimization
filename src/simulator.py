@@ -36,6 +36,7 @@ class Simulator:
         self.config_pred = config_pred
         self.artificial_results_dict: dict[tuple[str, str], list[Result]] = dict()
         self.realworld_results_dict: dict[tuple[str, str], list[Result]] = dict()
+        self.realworld_results_detail_dict: dict[tuple[str, str], list[Result]] = dict()
         self.data_params: list[ArtificialDataParameter | RealDataParameter] = self.make_data_params(
             config_data=config_data, data_type=data_type
         )
@@ -88,8 +89,8 @@ class Simulator:
 
             # モデルごとの評価
             for model_name, algo_name in model_algo_names:
-                # データのスケーリング
                 predictor_name = self.config_opt["model"][model_name]["prediction"]
+                # データのスケーリング
                 scaling_type = self.config_pred[predictor_name]["scaling"]
                 scaler = select_scaler(scaling_type=scaling_type)
                 X_train = pd.DataFrame(
@@ -132,13 +133,14 @@ class Simulator:
                 optimizer.run(**algo_settings[algo_name])
 
                 # 計算した最適価格の評価
-                result = self.evaluate(
+                result, result_detail = self.evaluate(
                     test_df=scaled_test_df,
-                    target_cols=target_cols,
+                    label2item=label2item,
                     item2predictor=predictors.item2predictor,
                     opt_prices=optimizer.opt_prices,
                 )
-                self.realworld_results_dict[model_name][algo_name] = result
+                self.realworld_results_dict[(model_name, algo_name)] = result
+                self.realworld_results_detail_dict[(model_name, algo_name)] = result_detail
 
     @staticmethod
     def evaluate(
@@ -154,7 +156,7 @@ class Simulator:
             opt_prices=opt_prices,
         )
         evaluator.run()
-        return evaluator.result
+        return evaluator.result, evaluator.result_item
 
     def make_model_algo_names(self) -> tuple[str, str]:
         model_settings = self.config_opt["model"]
