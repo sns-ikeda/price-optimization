@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from logzero import logger
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 
 from src.predict.plot import plot
 from src.utils.handle_module import get_object_from_module
@@ -65,11 +65,8 @@ class PredictorHandler:
                 suffix="train",
                 dir_path=RESULT_DIR / "realworld" / "predict",
             )
-
-            # 学習データを用いたときの平均二乗誤差を出力
-            rmse_train = round(np.sqrt(mean_squared_error(y_train, y_pred_train)), 1)
-            self.result["rmse"]["train"][item] = rmse_train
-            logger.info(f"RMSE for train data [{item}]: {rmse_train}")
+            # 学習データを用いたときの評価
+            self.evaluate(y=y_train, y_pred=y_pred_train, split_type="train", item=item)
 
             # テストデータに対する精度評価
             if self.test_df is not None:
@@ -87,8 +84,15 @@ class PredictorHandler:
                     suffix="test",
                     dir_path=RESULT_DIR / "realworld" / "predict",
                 )
+                # テストデータを用いたときの評価
+                self.evaluate(y=y_test, y_pred=y_pred_test, split_type="test", item=item)
 
-                # テストデータを用いたときの平均二乗誤差を出力
-                rmse_test = round(np.sqrt(mean_squared_error(y_test, y_pred_test)), 1)
-                self.result["rmse"]["test"][item] = rmse_test
-                logger.info(f"RMSE for test data [{item}]: {rmse_test}")
+    def evaluate(self, y: np.array, y_pred: np.array, split_type: str, item: str) -> None:
+        # 二乗平均平方根誤差
+        rmse = round(np.sqrt(mean_squared_error(y, y_pred)), 1)
+        self.result["rmse"][split_type][item] = rmse
+        logger.info(f"RMSE for {split_type} data [{item}]: {rmse}")
+        # 決定係数
+        r2 = round(r2_score(y, y_pred), 2)
+        self.result["r2"][split_type][item] = r2
+        logger.info(f"R^2 for {split_type} data [{item}]: {r2}")
