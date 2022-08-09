@@ -33,11 +33,13 @@ class PredictorHandler:
         label2item: dict[str, str],
         predictor_name: str,
         test_df: Optional[pd.DataFrame] = None,
+        prefix: Optional[str] = None,
     ) -> None:
         self.train_df = train_df
         self.test_df = test_df
         self.label2item = label2item
         self.predictor_name = predictor_name
+        self.prefix = prefix
         self.item2predictor: dict[str, Predictor] = dict()
         self.result = defaultdict(lambda: defaultdict(dict))
 
@@ -57,13 +59,19 @@ class PredictorHandler:
 
             # 学習データに対する目的変数を予測
             y_pred_train = predictor.predict(X_train)
+            if self.prefix is not None:
+                train_suffix = f"{self.prefix}_train"
+                test_suffix = f"{self.prefix}_test"
+            else:
+                train_suffix = "train"
+                test_suffix = "test"
             plot(
                 X=X_train,
                 y=y_train,
                 y_pred=y_pred_train,
                 predictor_name=self.predictor_name,
                 target_item=item,
-                suffix="train",
+                suffix=train_suffix,
                 dir_path=RESULT_DIR / "realworld" / "predict",
             )
             # 学習データを用いたときの評価
@@ -82,7 +90,7 @@ class PredictorHandler:
                     y_pred=y_pred_test,
                     predictor_name=self.predictor_name,
                     target_item=item,
-                    suffix="test",
+                    suffix=test_suffix,
                     dir_path=RESULT_DIR / "realworld" / "predict",
                 )
                 # テストデータを用いたときの評価
