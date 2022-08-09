@@ -215,6 +215,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         TimeLimit: int = 100,
         NoRelHeurTime: float = 0,
         MIPFocus: int = 0,
+        write_lp: bool = False,
     ) -> None:
         # モデルを構築
         self._set_model()
@@ -236,4 +237,5 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.objective = self.problem.objective.value()
         self.variable.to_value()
         self.result = Result(calculation_time=elapsed_time, objective=self.objective)
-        self.write_lp()
+        if write_lp:
+            self.write_lp()
