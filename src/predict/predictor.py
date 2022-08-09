@@ -22,7 +22,7 @@ class Predictor:
         self.coef_dict = dict()
 
     def predict(self, X: pd.DataFrame) -> np.array:
-        return self.model.predict(X)
+        return np.clip(self.model.predict(X), 0, None)
 
 
 class PredictorHandler:
