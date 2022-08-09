@@ -10,6 +10,7 @@ from src.optimize.params import ArtificialDataParameter, RealDataParameter
 class Result:
     calculation_time: float
     objective: float
+    opt_prices: dict[str, float]
     data_param: Optional[ArtificialDataParameter | RealDataParameter] = None
 
     def to_dict(self):
