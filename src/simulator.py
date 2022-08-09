@@ -109,6 +109,7 @@ class Simulator:
                     train_df=scaled_train_df,
                     label2item=label2item,
                     predictor_name=predictor_name,
+                    prefix="train",
                 )
                 train_predictors.run()
                 self.train_predictors[dataset_name, predictor_name] = train_predictors
@@ -118,6 +119,7 @@ class Simulator:
                     train_df=scaled_test_df,
                     label2item=label2item,
                     predictor_name=predictor_name,
+                    prefix="test",
                 )
                 test_predictors.run()
                 self.test_predictors[dataset_name, predictor_name] = test_predictors
