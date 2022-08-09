@@ -12,7 +12,7 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     return index_set, constant
 
 
-def make_real_input(params: RealDataParameter) -> tuple[IndexSet, Constant]:
+def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]:
     """実際のデータからモデルのパラメータを生成"""
     M = list(params.item2prices.keys())
     K = list(range(params.num_of_prices))
