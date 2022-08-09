@@ -11,9 +11,7 @@ from src.evaluate.evaluator import Evaluator
 from src.optimize.optimizer import Optimizer
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.result import Result
-from src.predict.predictor import Predictor, PredictorHandler
-from src.utils.dict_converter import dict2json
-from src.utils.paths import RESULT_DIR
+from src.predict.predictor import PredictorHandler
 
 IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")
@@ -35,8 +33,11 @@ class Simulator:
         self.config_algo = config_algo
         self.config_pred = config_pred
         self.artificial_results_dict: dict[tuple[str, str], list[Result]] = dict()
-        self.realworld_results_dict: dict[tuple[str, str], list[Result]] = dict()
-        self.realworld_results_detail_dict: dict[tuple[str, str], list[Result]] = dict()
+        self.train_predictors = defaultdict(lambda: defaultdict(dict))
+        self.test_predictors = defaultdict(lambda: defaultdict(dict))
+        self.optimizers = defaultdict(lambda: defaultdict(dict))
+        self.evaluators = defaultdict(lambda: defaultdict(dict))
+        self.pred_results_dict = defaultdict(lambda: defaultdict(dict))
         self.data_params: list[ArtificialDataParameter | RealDataParameter] = self.make_data_params(
             config_data=config_data, data_type=data_type
         )
@@ -71,7 +72,6 @@ class Simulator:
         """実データによるシミュレーションを実行"""
         model_algo_names = self.make_model_algo_names()
         algo_settings = self.config_algo
-        pred_results_dict = defaultdict(lambda: defaultdict(dict))
 
         # データセットごとの評価
         for dataset_name, data_settings in self.config_data["realworld"].items():
@@ -92,73 +92,71 @@ class Simulator:
                 predictor_name = self.config_opt["model"][model_name]["prediction"]
                 # データのスケーリング
                 scaling_type = self.config_pred[predictor_name]["scaling"]
-                scaler = select_scaler(scaling_type=scaling_type)
+                train_scaler = select_scaler(scaling_type=scaling_type)
+                test_scaler = select_scaler(scaling_type=scaling_type)
+
                 X_train = pd.DataFrame(
-                    scaler.fit_transform(train_df[feature_cols]), columns=feature_cols
+                    train_scaler.fit_transform(train_df[feature_cols]), columns=feature_cols
                 )
-                X_test = pd.DataFrame(scaler.transform(test_df[feature_cols]), columns=feature_cols)
+                X_test = pd.DataFrame(
+                    test_scaler.fit_transform(test_df[feature_cols]), columns=feature_cols
+                )
                 scaled_train_df = pd.concat([X_train, train_df[target_cols]], axis=1)
                 scaled_test_df = pd.concat([X_test, test_df[target_cols]], axis=1)
-                assert len(train_df) == len(scaled_train_df)
-                assert len(test_df) == len(scaled_test_df)
+                assert train_df.shape == scaled_train_df.shape
+                assert test_df.shape == scaled_test_df.shape
 
-                # 予測モデルを構築
-                predictors = PredictorHandler(
+                # 学習データに対する予測モデルを構築
+                train_predictors = PredictorHandler(
                     train_df=scaled_train_df,
-                    test_df=scaled_test_df,
                     label2item=label2item,
                     predictor_name=predictor_name,
                 )
-                predictors.run()
+                train_predictors.run()
+                self.train_predictors[dataset_name][predictor_name] = train_predictors
 
-                # 予測モデルの結果を格納
-                pred_results_dict[dataset_name][predictor_name] = predictors.result
-                dict2json(
-                    target_dict=pred_results_dict,
-                    save_path=RESULT_DIR / "json" / "pred_result.json",
+                # テストデータに対する予測モデルを構築
+                test_predictors = PredictorHandler(
+                    train_df=scaled_test_df,
+                    label2item=label2item,
+                    predictor_name=predictor_name,
                 )
+                test_predictors.run()
+                self.test_predictors[dataset_name][predictor_name] = test_predictors
+
                 # 商品ごとの価格候補を取得
                 item2prices = dp.get_item2prices(
                     df=scaled_train_df,
                     num_of_prices=data_settings["num_of_prices"],
                     items=list(label2item.values()),
                 )
+                # 最適化モデルの入力データを作成
                 data_param = RealDataParameter(
-                    item2predictor=predictors.item2predictor, item2prices=item2prices
+                    num_of_prices=data_settings["num_of_prices"],
+                    item2predictor=train_predictors.item2predictor,
+                    item2prices=item2prices,
+                    g=self.calc_g(X=X_train.tail(1), items=list(label2item.values())),
                 )
                 # 価格最適化を実行
                 optimizer = Optimizer(
                     model_name=model_name, algo_name=algo_name, data_param=data_param
                 )
                 optimizer.run(**algo_settings[algo_name])
+                self.optimizers[dataset_name][model_name][algo_name] = optimizer
 
                 # 計算した最適価格の評価
-                result, result_detail = self.evaluate(
+                # avg_prices = get_avg_prices(df=X_train, items=list(label2item.values()))
+                evaluator = Evaluator(
                     test_df=scaled_test_df,
                     label2item=label2item,
-                    item2predictor=predictors.item2predictor,
-                    opt_prices=optimizer.opt_prices,
+                    item2predictor=test_predictors.item2predictor,
+                    opt_prices=optimizer.result.opt_prices,
                 )
-                self.realworld_results_dict[(model_name, algo_name)] = result
-                self.realworld_results_detail_dict[(model_name, algo_name)] = result_detail
-
-    @staticmethod
-    def evaluate(
-        test_df: pd.DataFrame,
-        label2item: dict[str, str],
-        item2predictor: dict[str, Predictor],
-        opt_prices: dict[str, float],
-    ):
-        evaluator = Evaluator(
-            test_df=test_df,
-            label2item=label2item,
-            item2predictor=item2predictor,
-            opt_prices=opt_prices,
-        )
-        evaluator.run()
-        return evaluator.result, evaluator.result_item
+                evaluator.run()
+                self.evaluators[dataset_name][model_name][algo_name] = evaluator
 
     def make_model_algo_names(self) -> tuple[str, str]:
+        """実行するモデルとアルゴリズムの名前のtupleを生成"""
         model_settings = self.config_opt["model"]
         model_algo_names = [
             (model_name, algo_name)
@@ -185,3 +183,12 @@ class Simulator:
                 )
                 data_params.append(data_param)
         return data_params
+
+    @staticmethod
+    def calc_g(X: pd.DataFrame, items: list[str]) -> dict[str, float]:
+        df = X.copy().head(1)
+        feature_cols = X.columns.tolist()
+        price_cols = ["PRICE" + "_" + item for item in items]
+        other_feature_cols = [col for col in feature_cols if col not in price_cols]
+        g = {col: float(df[col]) for col in other_feature_cols}
+        return g
