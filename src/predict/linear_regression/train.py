@@ -13,4 +13,5 @@ def train(X: pd.DataFrame, y: pd.DataFrame) -> Predictor:
     model.fit(X, y)
     predictor = Predictor(model=model, feature_cols=feature_cols, target_col=target_col)
     predictor.coef_dict = {X.columns[i]: coef for i, coef in enumerate(model.coef_)}
+    predictor.intercept = model.intercept_
     return predictor

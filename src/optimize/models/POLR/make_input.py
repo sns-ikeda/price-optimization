@@ -28,6 +28,7 @@ def make_real_input(params: RealDataParameter) -> tuple[IndexSet, Constant]:
         for col, coef in predictor.coef_dict.items():
             beta[m, col] = coef
             g[col] = params.g[col]
+        beta["intercept"] = predictor.intercept
         g["intercept"] = 1
         D[m] = [col for col in predictor.coef_dict.keys() if col not in price_cols]
         D_[m] = ["intercept"]
