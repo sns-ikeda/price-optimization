@@ -27,11 +27,13 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         predictor = params.item2predictor[m]
         for col, coef in predictor.coef_dict.items():
             beta[m, col] = coef
-            g[col] = params.g[col]
-        beta["intercept"] = predictor.intercept
-        g["intercept"] = 1
+        beta[m, "intercept"] = predictor.intercept
+
         D[m] = [col for col in predictor.coef_dict.keys() if col not in price_cols]
         D_[m] = ["intercept"]
+        for d in D[m]:
+            g[d] = params.g[d]
+        g["intercept"] = 1
     index_set = IndexSet(D=D, D_=D_, M=M, K=K)
     constant = Constant(beta=beta, phi=phi, g=g, P=P)
     return index_set, constant
