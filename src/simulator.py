@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Any, TypeVar
 
 import pandas as pd
@@ -33,10 +32,10 @@ class Simulator:
         self.config_algo = config_algo
         self.config_pred = config_pred
         self.artificial_results_dict: dict[tuple[str, str], list[Result]] = dict()
-        self.train_predictors = defaultdict(lambda: defaultdict(dict))
-        self.test_predictors = defaultdict(lambda: defaultdict(dict))
-        self.optimizers = defaultdict(lambda: defaultdict(dict))
-        self.evaluators = defaultdict(lambda: defaultdict(dict))
+        self.train_predictors: dict[tuple[str, str], PredictorHandler] = dict()
+        self.test_predictors: dict[tuple[str, str], PredictorHandler] = dict()
+        self.optimizers: dict[tuple[str, str, str], Optimizer] = dict()
+        self.evaluators: dict[tuple[str, str, str], Evaluator] = dict()
         self.data_params: list[ArtificialDataParameter | RealDataParameter] = self.make_data_params(
             config_data=config_data, data_type=data_type
         )
@@ -112,7 +111,7 @@ class Simulator:
                     predictor_name=predictor_name,
                 )
                 train_predictors.run()
-                self.train_predictors[dataset_name][predictor_name] = train_predictors
+                self.train_predictors[dataset_name, predictor_name] = train_predictors
 
                 # テストデータに対する予測モデルを構築
                 test_predictors = PredictorHandler(
@@ -121,7 +120,7 @@ class Simulator:
                     predictor_name=predictor_name,
                 )
                 test_predictors.run()
-                self.test_predictors[dataset_name][predictor_name] = test_predictors
+                self.test_predictors[dataset_name, predictor_name] = test_predictors
 
                 # 商品ごとの価格候補を取得
                 item2prices = dp.get_item2prices(
@@ -141,7 +140,7 @@ class Simulator:
                     model_name=model_name, algo_name=algo_name, data_param=data_param
                 )
                 optimizer.run(**algo_settings[algo_name])
-                self.optimizers[dataset_name][model_name][algo_name] = optimizer
+                self.optimizers[dataset_name, model_name, algo_name] = optimizer
 
                 # 計算した最適価格の評価
                 # avg_prices = get_avg_prices(df=X_train, items=list(label2item.values()))
@@ -152,7 +151,7 @@ class Simulator:
                     opt_prices=optimizer.result.opt_prices,
                 )
                 evaluator.run()
-                self.evaluators[dataset_name][model_name][algo_name] = evaluator
+                self.evaluators[dataset_name, model_name, algo_name] = evaluator
 
     def make_model_algo_names(self) -> tuple[str, str]:
         """実行するモデルとアルゴリズムの名前のtupleを生成"""

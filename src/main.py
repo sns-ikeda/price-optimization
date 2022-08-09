@@ -106,18 +106,38 @@ def main():
                     y_label=y_label,
                 )
     elif data_type == "realworld":
-        # 結果の出力
+        # 学習データへの学習結果を出力
+        pred_result_train = defaultdict(lambda: defaultdict(dict))
+        for dataset_name, predictor_name in simulator.train_predictors.keys():
+            predictors = simulator.train_predictors[dataset_name, predictor_name]
+            pred_result_train[dataset_name][predictor_name] = predictors.result
         dict2json(
-            target_dict=simulator.pred_results_dict,
-            save_path=RESULT_DIR / data_type / "predict" / "pred_result.json",
+            target_dict=pred_result_train,
+            save_path=RESULT_DIR / data_type / "predict" / "pred_result_train.json",
+        )
+        # テストデータへの学習結果を出力
+        pred_result_test = defaultdict(lambda: defaultdict(dict))
+        for dataset_name, predictor_name in simulator.test_predictors.keys():
+            predictors = simulator.test_predictors[dataset_name, predictor_name]
+            pred_result_test[dataset_name][predictor_name] = predictors.result
+        dict2json(
+            target_dict=pred_result_test,
+            save_path=RESULT_DIR / data_type / "predict" / "pred_result_test.json",
+        )
+        # 価格の評価結果を出力
+        eval_result = defaultdict(lambda: defaultdict(dict))
+        eval_result_detail = defaultdict(lambda: defaultdict(dict))
+        for dataset_name, model_name, algo_name in simulator.evaluators.keys():
+            evaluator = simulator.evaluators[dataset_name, model_name, algo_name]
+            eval_result[dataset_name][model_name][algo_name] = evaluator.result
+            eval_result_detail[dataset_name][model_name][algo_name] = evaluator.result_item
+        dict2json(
+            target_dict=eval_result,
+            save_path=RESULT_DIR / data_type / "optimize" / "eval_result.json",
         )
         dict2json(
-            target_dict=simulator.realworld_results_dict,
-            save_path=RESULT_DIR / data_type / "optimize" / "result.json",
-        )
-        dict2json(
-            target_dict=simulator.realworld_results_detail_dict,
-            save_path=RESULT_DIR / data_type / "optimize" / "result_detail.json",
+            target_dict=eval_result_detail,
+            save_path=RESULT_DIR / data_type / "optimize" / "eval_result_detail.json",
         )
 
 
