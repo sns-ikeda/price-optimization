@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import Any
 
 from src.predict.predictor import Predictor
-
-MLModel = TypeVar("MLModel")
 
 
 @dataclass(frozen=True)
@@ -50,3 +48,22 @@ class RealDataParameter:
     item2predictor: dict[str, Predictor] = field(default_factory=dict)
     data_type: str = "realworld"
     g: dict[str, float] = field(default_factory=dict)
+
+
+def make_data_params(
+    config_data: dict[str, Any], data_type: str, **kwargs
+) -> list[ArtificialDataParameter | RealDataParameter]:
+    """シミュレーションで設定するパラメータの生成"""
+    data_params = []
+    if data_type == "artificial":
+        param = config_data[data_type]["params"]
+        for num_of_items in param["num_of_items"]:
+            data_param = ArtificialDataParameter(
+                num_of_items=num_of_items,
+                num_of_prices=param["num_of_prices"],
+                num_of_other_features=param["num_of_other_features"],
+                depth_of_trees=param["depth_of_trees"],
+                base_price=param["base_price"],
+            )
+            data_params.append(data_param)
+    return data_params

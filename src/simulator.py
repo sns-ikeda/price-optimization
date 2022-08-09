@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from src.data_preprocess.preprocessor import DataPreprocessor, select_scaler
 from src.evaluate.evaluator import Evaluator
 from src.optimize.optimizer import Optimizer
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import ArtificialDataParameter, RealDataParameter, make_data_params
 from src.optimize.result import Result
 from src.predict.predictor import PredictorHandler
 
@@ -36,7 +36,7 @@ class Simulator:
         self.test_predictors: dict[tuple[str, str], PredictorHandler] = dict()
         self.optimizers: dict[tuple[str, str, str], Optimizer] = dict()
         self.evaluators: dict[tuple[str, str, str], Evaluator] = dict()
-        self.data_params: list[ArtificialDataParameter | RealDataParameter] = self.make_data_params(
+        self.data_params: list[ArtificialDataParameter | RealDataParameter] = make_data_params(
             config_data=config_data, data_type=data_type
         )
 
@@ -162,25 +162,6 @@ class Simulator:
             for algo_name in model_settings[model_name]["algorithm"]
         ]
         return model_algo_names
-
-    @staticmethod
-    def make_data_params(
-        config_data: dict[str, Any], data_type: str, **kwargs
-    ) -> list[ArtificialDataParameter | RealDataParameter]:
-        """シミュレーションで設定するパラメータの生成"""
-        data_params = []
-        if data_type == "artificial":
-            param = config_data[data_type]["params"]
-            for num_of_items in param["num_of_items"]:
-                data_param = ArtificialDataParameter(
-                    num_of_items=num_of_items,
-                    num_of_prices=param["num_of_prices"],
-                    num_of_other_features=param["num_of_other_features"],
-                    depth_of_trees=param["depth_of_trees"],
-                    base_price=param["base_price"],
-                )
-                data_params.append(data_param)
-        return data_params
 
     @staticmethod
     def calc_g(X: pd.DataFrame, items: list[str]) -> dict[str, float]:
