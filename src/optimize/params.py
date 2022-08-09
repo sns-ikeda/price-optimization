@@ -44,7 +44,9 @@ class ArtificialDataParameter:
 
 @dataclass(frozen=True)
 class RealDataParameter:
+    num_of_prices: int
     item2prices: dict[str, list[float]]
     seed: int = 0
     item2predictor: dict[str, Predictor] = field(default_factory=dict)
     data_type: str = "realworld"
+    g: dict[str, float] = field(default_factory=dict)
