@@ -21,6 +21,8 @@ format:
 .PHONY: clean
 clean:
 	find . -type f -name "*.py[co]" -delete
+	find . -type f -name "*.json" -delete
+	find . -type f -name "*.png" -delete
 	find . -type d -name "__pycache__" -delete
 
 .PHONY: test
