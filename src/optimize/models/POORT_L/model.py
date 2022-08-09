@@ -236,6 +236,8 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         # 結果の格納
         self.objective = self.problem.objective.value()
         self.variable.to_value()
-        self.result = Result(calculation_time=elapsed_time, objective=self.objective)
+        self.result = Result(
+            calculation_time=elapsed_time, objective=self.objective, opt_prices=self.variable.x
+        )
         if write_lp:
             self.write_lp()
