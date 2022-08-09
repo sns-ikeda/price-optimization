@@ -113,7 +113,7 @@ def main():
         )
         dict2json(
             target_dict=simulator.realworld_results_dict,
-            save_path=RESULT_DIR / data_type / "predict" / "result.json",
+            save_path=RESULT_DIR / data_type / "optimize" / "result.json",
         )
         dict2json(
             target_dict=simulator.realworld_results_detail_dict,
