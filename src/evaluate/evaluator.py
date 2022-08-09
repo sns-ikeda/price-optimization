@@ -32,9 +32,9 @@ class Evaluator:
             y_pred = predictor.predict(X_test)
 
             # 売上の実績値
-            self.result_item["actual_sales"][item] = float(sum(y_test.values))
+            self.result_item["actual_sales"][item] = round(float(sum(y_test.values)), 1)
             # 実際価格での予測売上
-            self.result_item["pred_sales_at_actual_price"][item] = float(sum(y_pred))
+            self.result_item["pred_sales_at_actual_price"][item] = round(float(sum(y_pred)), 1)
 
         for metric, result_item in self.result_item.items():
             self.result[metric] = float(sum(result_item.values()))
