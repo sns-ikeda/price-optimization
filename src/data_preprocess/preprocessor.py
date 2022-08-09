@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TypeVar
+
 import numpy as np
 import pandas as pd
 from logzero import logger
 
 from src.utils.handle_module import get_object_from_module
 from src.utils.paths import DATA_PRE_DIR
+
+ScalerClass = TypeVar("ScalerClass")
 
 
 class DataPreprocessor:
@@ -75,3 +79,15 @@ def select_scaler(scaling_type: str = "standard"):
         return preprocessing.StandardScaler()
     elif scaling_type == "minmax":
         return preprocessing.MinMaxScaler()
+
+
+def inverse_transform(
+    scaler: ScalerClass, item2prices: dict[str, list[float]], X_train: pd.DataFrame
+) -> dict[str, list[float]]:
+    item2inv_prices = dict()
+    return item2inv_prices
+
+
+def get_avg_prices(X_train: pd.DataFrame, items: list[str]) -> dict[str, float]:
+    avg_prices = dict()
+    return avg_prices
