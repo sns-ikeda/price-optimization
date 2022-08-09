@@ -4,8 +4,6 @@ from typing import Optional, Union
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from src.utils.paths import RESULT_DIR
-
 
 def plot(
     X: pd.DataFrame,
@@ -13,7 +11,7 @@ def plot(
     y_pred: pd.DataFrame,
     predictor_name: str,
     target_item: str,
-    dir_path: Union[str, Path] = RESULT_DIR / "png",
+    dir_path: Union[str, Path],
     suffix: Optional[str] = None,
 ):
     # 結果をプロット

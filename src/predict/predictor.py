@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 
 from src.predict.plot import plot
 from src.utils.handle_module import get_object_from_module
-from src.utils.paths import PRED_DIR
+from src.utils.paths import PRED_DIR, RESULT_DIR
 
 
 class Predictor:
@@ -63,10 +63,11 @@ class PredictorHandler:
                 predictor_name=self.predictor_name,
                 target_item=item,
                 suffix="train",
+                dir_path=RESULT_DIR / "realworld" / "predict",
             )
 
             # 学習データを用いたときの平均二乗誤差を出力
-            rmse_train = round(np.sqrt(mean_squared_error(y_train, y_pred_train)), 2)
+            rmse_train = round(np.sqrt(mean_squared_error(y_train, y_pred_train)), 1)
             self.result["rmse"]["train"][item] = rmse_train
             logger.info(f"RMSE for train data [{item}]: {rmse_train}")
 
@@ -84,9 +85,10 @@ class PredictorHandler:
                     predictor_name=self.predictor_name,
                     target_item=item,
                     suffix="test",
+                    dir_path=RESULT_DIR / "realworld" / "predict",
                 )
 
                 # テストデータを用いたときの平均二乗誤差を出力
-                rmse_test = round(np.sqrt(mean_squared_error(y_test, y_pred_test)), 2)
+                rmse_test = round(np.sqrt(mean_squared_error(y_test, y_pred_test)), 1)
                 self.result["rmse"]["test"][item] = rmse_test
                 logger.info(f"RMSE for test data [{item}]: {rmse_test}")

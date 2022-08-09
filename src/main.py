@@ -78,7 +78,8 @@ def main():
 
             # jsonで保存
             dict2json(
-                target_dict=avg_results_dict, save_path=RESULT_DIR / "json" / (save_name + ".json")
+                target_dict=avg_results_dict,
+                save_path=RESULT_DIR / data_type / "optimize" / (save_name + ".json"),
             )
             # png形式で保存
             if result_prefix == "calculation_time":
@@ -87,7 +88,7 @@ def main():
                 y_label = result_prefix
             save_image(
                 avg_results_dict=flattened_results_dict,
-                dir_path=RESULT_DIR / "png",
+                dir_path=RESULT_DIR / data_type / "optimize",
                 image_name=save_name,
                 y_label=y_label,
             )
@@ -100,10 +101,24 @@ def main():
                 # png形式で保存
                 save_image(
                     avg_results_dict=avg_results_dict_,
-                    dir_path=RESULT_DIR / "png",
+                    dir_path=RESULT_DIR / data_type / "optimize",
                     image_name=save_name,
                     y_label=y_label,
                 )
+    elif data_type == "realworld":
+        # 結果の出力
+        dict2json(
+            target_dict=simulator.pred_results_dict,
+            save_path=RESULT_DIR / data_type / "predict" / "pred_result.json",
+        )
+        dict2json(
+            target_dict=simulator.realworld_results_dict,
+            save_path=RESULT_DIR / data_type / "predict" / "result.json",
+        )
+        dict2json(
+            target_dict=simulator.realworld_results_detail_dict,
+            save_path=RESULT_DIR / data_type / "optimize" / "result_detail.json",
+        )
 
 
 if __name__ == "__main__":
