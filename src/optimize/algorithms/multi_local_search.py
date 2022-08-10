@@ -20,6 +20,9 @@ class MultiLocalSearch(BaseAlgorithm):
         self.xs = []
         self.zs = []
         self.objectives = []
+        self.x_best = None
+        self.z_best = None
+        self.objective_best = None
 
     def run(self) -> None:
         start = time.time()
@@ -27,8 +30,15 @@ class MultiLocalSearch(BaseAlgorithm):
             logger.info(f"num of multi start: {i}")
             self.local_search(seed=self.seed + i)
         elapsed_time = time.time() - start
+        opt_idx = np.argmax(self.objectives)
+        self.objective_best = self.objectives[opt_idx]
+        self.x_best = self.xs[opt_idx]
+        self.z_best = self.zs[opt_idx]
+        opt_prices = {item: self.constant.P[item, idx] for item, idx in self.x_best.items()}
         self.result = Result(
-            calculation_time=elapsed_time, objective=max(self.objectives, default=None)
+            calculation_time=elapsed_time,
+            objective=max(self.objectives, default=None),
+            opt_prices=opt_prices,
         )
 
     def local_search(self, seed: int = 0) -> None:
