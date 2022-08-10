@@ -5,12 +5,19 @@ from typing import Optional
 import pandas as pd
 
 
-def filter_df(df: pd.DataFrame, category: Optional[str] = None, store_num: Optional[int] = None):
+def filter_df(
+    df: pd.DataFrame,
+    category: Optional[str] = None,
+    store_num: Optional[int] = None,
+    manufacturer: Optional[str] = None,
+):
     df_ = df.copy()
     if category is not None:
         df_ = df_.query("CATEGORY == @category").reset_index(drop=True)
     if store_num is not None:
         df_ = df_.query("STORE_NUM == @store_num").reset_index(drop=True)
+    if manufacturer is not None:
+        df_ = df_.query("MANUFACTURER == @manufacturer").reset_index(drop=True)
     return df_
 
 
@@ -20,6 +27,7 @@ def preprocess(
     master_cols: list[str],
     category: Optional[str] = None,
     store_num: Optional[int] = None,
+    manufacturer: Optional[str] = None,
     **kwargs,
 ) -> pd.DataFrame:
     _df = df.copy()
@@ -43,8 +51,9 @@ def preprocess(
         axis=1,
     )
     # 対象の店舗・商品カテゴリに絞ってデータを抽出
-    filtered_df = filter_df(df=_df, category=category, store_num=store_num)
-
+    filtered_df = filter_df(
+        df=_df, category=category, store_num=store_num, manufacturer=manufacturer
+    )
     # 学習用のデータに整形
     value_cols = ["UNITS", "PRICE"]
     base_df = filtered_df[base_cols]

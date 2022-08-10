@@ -2,6 +2,7 @@ realworld:
   breakfast:
     store_num: 25027
     category: "COLD CEREAL"
+    manufacturer: "PRIVATE LABEL"
     target_col: "UNITS"
     base_cols:
         - "YEAR"
