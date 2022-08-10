@@ -49,10 +49,10 @@ class Evaluator:
             X_avg_inv = pd.DataFrame(
                 self.scaler.inverse_transform(X_avg), columns=self.feature_cols
             )
+        X_test = self.scaled_test_df[self.feature_cols]
         for target_col, item in self.label2item.items():
-            # 推論
-            X_test = self.scaled_test_df[self.feature_cols]
             y_test = self.scaled_test_df[target_col]
+            # 推論
             predictor = self.item2predictor[item]
             y_pred = predictor.predict(X_test)
             y_pred_opt = predictor.predict(X_opt)
