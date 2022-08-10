@@ -239,7 +239,13 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.variable.to_value()
         opt_prices = get_opt_prices(x=self.variable.x, P=self.constant.P)
         self.result = Result(
-            calculation_time=elapsed_time, objective=self.objective, opt_prices=opt_prices
+            calculation_time=elapsed_time,
+            objective=self.objective,
+            opt_prices=opt_prices,
+            problem=self.problem,
+            index_set=self.index_set,
+            constant=self.constant,
+            variable=self.variable,
         )
         if write_lp:
             self.write_lp()

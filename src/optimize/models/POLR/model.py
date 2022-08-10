@@ -48,7 +48,7 @@ class Variable:
             self.q[m] = pulp.LpVariable(f"q[{m}]", cat=pulp.LpContinuous)
             for k in self.index_set.K:
                 self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
-                self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous)
+                self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous, lowBound=0)
 
     def to_value(self):
         for attr in self.__dict__.keys():
@@ -167,7 +167,13 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.variable.to_value()
         opt_prices = get_opt_prices(x=self.variable.x, P=self.constant.P)
         self.result = Result(
-            calculation_time=elapsed_time, objective=self.objective, opt_prices=opt_prices
+            calculation_time=elapsed_time,
+            objective=self.objective,
+            opt_prices=opt_prices,
+            problem=self.problem,
+            index_set=self.index_set,
+            constant=self.constant,
+            variable=self.variable,
         )
         if write_lp:
             self.write_lp()
