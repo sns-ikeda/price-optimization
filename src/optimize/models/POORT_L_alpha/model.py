@@ -9,6 +9,7 @@ from typing import Optional
 import pulp
 from gurobipy import GurobiError
 
+from src.optimize.processing import get_opt_prices
 from src.optimize.result import Result
 from src.utils.paths import DATA_DIR
 
@@ -227,8 +228,9 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         # 結果の格納
         self.objective = self.problem.objective.value()
         self.variable.to_value()
+        opt_prices = get_opt_prices(x=self.variable.x, P=self.constant.P)
         self.result = Result(
-            calculation_time=elapsed_time, objective=self.objective, opt_prices=self.variable.x
+            calculation_time=elapsed_time, objective=self.objective, opt_prices=opt_prices
         )
         if write_lp:
             self.write_lp()
