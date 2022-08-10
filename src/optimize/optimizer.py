@@ -30,6 +30,7 @@ class Optimizer:
         self.model_name = model_name
         self.algo_name = algo_name
         self.data_param = data_param
+        self.algorithm = None
         self.result = None
 
     @staticmethod
@@ -58,7 +59,7 @@ class Optimizer:
         model = Optimizer.make_model(model_input)
         algo_class = ALGORITHMS.get(self.algo_name, None)
         if algo_class is not None:
-            algorithm = algo_class(model=model, **kwargs)
-            algorithm.run()
-            algorithm.result.data_param = self.data_param
-            self.result = algorithm.result
+            self.algorithm = algo_class(model=model, **kwargs)
+            self.algorithm.run()
+            self.algorithm.result.data_param = self.data_param
+            self.result = self.algorithm.result
