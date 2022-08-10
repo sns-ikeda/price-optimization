@@ -48,7 +48,7 @@ class Variable:
             self.q[m] = pulp.LpVariable(f"q[{m}]", cat=pulp.LpContinuous)
             for k in self.index_set.K:
                 self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
-                self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous, lowBound=0)
+                self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous)
 
     def to_value(self):
         for attr in self.__dict__.keys():
@@ -87,7 +87,7 @@ class ConstraintsMixin:
             self.problem += self.variable.q[m] == pulp.lpSum(
                 self.constant.beta[m, "PRICE" + "_" + mp] * self.variable.p[mp]
                 for mp in self.index_set.M
-            ) - pulp.lpSum(
+            ) + pulp.lpSum(
                 self.constant.beta[m, d] * self.constant.g[d]
                 for d in self.index_set.D[m] + self.index_set.D_[m]
             )
