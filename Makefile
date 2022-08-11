@@ -5,6 +5,10 @@ environment:
 	pip install poetry
 	poetry install
 
+.PHONY: iai
+iai:
+	poetry run python src/iai.py
+
 .PHONY: pre-commit
 pre-commit:
 	poetry run pre-commit install
