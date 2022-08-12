@@ -11,6 +11,10 @@
 ```shell
 $ make environment
 ```
+- 最適決定木を初めて利用する場合は，下記コマンドを実行  
+```shell
+$ make iai
+```
 - ライブラリを追加したい場合は `poetry add {hoge}` にて追加する
 
 ## How to Run
@@ -28,7 +32,8 @@ $ make environment
 ```shell
 $ make artificial
 ```
-実データの場合：
+実データの場合：  
+（ライセンスファイルiai.licが実行するPCのどこかに置かれている必要がある）
 ```shell
 $ make realworld
 ```
