@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 from src.predict.predictor import Predictor
 
 
-def train(X: pd.DataFrame, y: pd.DataFrame) -> Predictor:
+def train(X: pd.DataFrame, y: pd.DataFrame, **kwargs) -> Predictor:
     feature_cols = X.columns.tolist()
     target_col = y.columns[0]
 
