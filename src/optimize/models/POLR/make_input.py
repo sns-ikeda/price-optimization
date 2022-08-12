@@ -4,6 +4,7 @@ import itertools
 
 from src.optimize.models.POLR.model import Constant, IndexSet
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.processing import rename_dict
 
 
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
@@ -36,14 +37,3 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     index_set = IndexSet(D=D, M=M, K=K)
     constant = Constant(beta=beta, beta0=beta0, phi=phi, g=g, P=P)
     return index_set, constant
-
-
-def rename_dict(target_dict: dict[str, float], prefix: str = "PRICE") -> dict[str, float]:
-    renamed_dict = dict()
-    for k, v in target_dict.items():
-        if prefix in k:
-            renamed_k = k.split("_")[-1]
-            renamed_dict[renamed_k] = v
-        else:
-            renamed_dict[k] = v
-    return renamed_dict
