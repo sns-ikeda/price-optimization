@@ -159,7 +159,7 @@ class Simulator:
         self.items = list(self.label2item.values())
 
         self.train_df, self.test_df = train_test_split(
-            processed_df, train_size=0.8, test_size=0.2, shuffle=False
+            processed_df, train_size=0.5, test_size=0.5, shuffle=False
         )
         self.test_df.reset_index(drop=True, inplace=True)
 
