@@ -19,8 +19,6 @@ class Predictor:
         self.feature_cols = feature_cols
         self.target_col = target_col
         self.item = None
-        self.coef_dict = dict()
-        self.intercept = 0
 
     def predict(self, X: pd.DataFrame) -> np.array:
         return np.clip(self.model.predict(X), 0, None)
