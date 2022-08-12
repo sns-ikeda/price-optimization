@@ -51,7 +51,7 @@ class PredictorHandler:
         for target_col, item in self.label2item.items():
             # 学習
             y_train = self.train_df[[target_col]]
-            predictor = train(X=X_train, y=y_train)
+            predictor = train(X=X_train, y=y_train, prefix=self.prefix)
             predictor.item = item
             self.item2predictor[item] = predictor
 
