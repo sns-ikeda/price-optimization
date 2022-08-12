@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, TypeVar
 
 import pandas as pd
+from logzero import logger
 from sklearn.model_selection import train_test_split
 
 from src.data_preprocess.preprocessor import (
@@ -111,6 +112,11 @@ class Simulator:
                         items=self.items,
                     ),
                 )
+                # 価格最適化しない場合の結果
+                actual_sales_item = self.calc_actual_sales(self.scaled_train_df.tail(1), self.items)
+                actual_total_sales = sum(actual_sales_item.values())
+                logger.info(f"actual_total_sales: {actual_total_sales}")
+
                 # 価格最適化を実行
                 optimizer = Optimizer(
                     model_name=model_name, algo_name=algo_name, data_param=data_param
