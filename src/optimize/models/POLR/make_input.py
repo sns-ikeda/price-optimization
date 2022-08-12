@@ -21,19 +21,26 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         P[m, k] = params.item2prices[m][k]
     phi = {(m, mp, k): 1 for m, mp, k in itertools.product(M, M, K)}
 
-    price_cols = ["PRICE" + "_" + m for m in M]
-    beta, g, D, D_ = dict(), dict(), dict(), dict()
+    beta, beta0, g, D = dict(), dict(), dict(), dict()
     for m in M:
         predictor = params.item2predictor[m]
-        for col, coef in predictor.coef_dict.items():
+        coef_dict = rename_dict(predictor.coef_dict)
+        for col, coef in coef_dict.items():
             beta[m, col] = coef
-        beta[m, "intercept"] = predictor.intercept
-
-        D[m] = [col for col in predictor.coef_dict.keys() if col not in price_cols]
-        D_[m] = ["intercept"]
-        for d in D[m]:
-            g[d] = params.g[d]
-        g["intercept"] = 1
-    index_set = IndexSet(D=D, D_=D_, M=M, K=K)
-    constant = Constant(beta=beta, phi=phi, g=g, P=P)
+        beta0[m] = predictor.intercept
+        D[m] = [col for col in coef_dict.keys() if col not in M]
+    g = params.g
+    index_set = IndexSet(D=D, M=M, K=K)
+    constant = Constant(beta=beta, beta0=beta0, phi=phi, g=g, P=P)
     return index_set, constant
+
+
+def rename_dict(target_dict: dict[str, float], prefix: str = "PRICE") -> dict[str, float]:
+    renamed_dict = dict()
+    for k, v in target_dict.items():
+        if prefix in k:
+            renamed_k = k.split("_")[-1]
+            renamed_dict[renamed_k] = v
+        else:
+            renamed_dict[k] = v
+    return renamed_dict

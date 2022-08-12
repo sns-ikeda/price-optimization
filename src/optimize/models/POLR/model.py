@@ -17,7 +17,6 @@ from src.utils.paths import DATA_DIR
 @dataclass(frozen=True)
 class IndexSet:
     D: dict[str, list[int]]
-    D_: dict[str, list[int]]
     M: list[str]
     K: list[str]
 
@@ -25,6 +24,7 @@ class IndexSet:
 @dataclass(frozen=True)
 class Constant:
     beta: dict[tuple[str, str], float]
+    beta0: dict[str, float]
     phi: dict[tuple[str, str, int], float]
     g: dict[str, float]
     P: dict[tuple[str, int], float]
@@ -84,12 +84,15 @@ class ConstraintsMixin:
 
     def _set_q_constraints(self) -> None:
         for m in self.index_set.M:
-            self.problem += self.variable.q[m] == pulp.lpSum(
-                self.constant.beta[m, "PRICE" + "_" + mp] * self.variable.p[mp]
-                for mp in self.index_set.M
-            ) + pulp.lpSum(
-                self.constant.beta[m, d] * self.constant.g[d]
-                for d in self.index_set.D[m] + self.index_set.D_[m]
+            self.problem += (
+                self.variable.q[m]
+                == pulp.lpSum(
+                    self.constant.beta[m, mp] * self.variable.p[mp] for mp in self.index_set.M
+                )
+                + pulp.lpSum(
+                    self.constant.beta[m, d] * self.constant.g[d] for d in self.index_set.D[m]
+                )
+                + self.constant.beta0[m]
             )
 
     def _set_price_constraints(self) -> None:
