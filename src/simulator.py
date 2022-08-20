@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import pandas as pd
 from logzero import logger
@@ -11,8 +11,6 @@ from src.data_preprocess.preprocessor import (
     get_item2avg_prices,
     get_item2prices,
     get_label2item,
-    inverse_transform,
-    select_scaler,
 )
 from src.evaluate.evaluator import Evaluator
 from src.optimize.optimizer import Optimizer
@@ -87,16 +85,13 @@ class Simulator:
             # モデルごとの評価
             for model_name, algo_name in model_algo_names:
                 predictor_name = self.config_opt["model"][model_name]["prediction"]
-                # データのスケーリング
-                scaling_type = self.config_pred[predictor_name]["scaling"]
-                self.scale(scaling_type=scaling_type)
 
                 # 予測モデルの構築
                 self.train(dataset_name=dataset_name, predictor_name=predictor_name)
 
                 # 商品ごとの価格候補を取得
                 item2prices = get_item2prices(
-                    df=self.scaled_train_df,
+                    df=self.train_df,
                     num_of_prices=data_settings["num_of_prices"],
                     items=list(self.label2item.values()),
                 )
@@ -108,12 +103,12 @@ class Simulator:
                     ].item2predictor,
                     item2prices=item2prices,
                     g=self.calc_g(
-                        X=self.scaled_train_df[self.feature_cols].tail(1),
+                        X=self.train_df[self.feature_cols].tail(1),
                         items=self.items,
                     ),
                 )
                 # 価格最適化しない場合の結果
-                actual_sales_item = self.calc_actual_sales(self.scaled_train_df.tail(1), self.items)
+                actual_sales_item = self.calc_actual_sales(self.train_df.tail(1), self.items)
                 actual_total_sales = sum(actual_sales_item.values())
                 logger.info(f"actual_total_sales: {actual_total_sales}")
 
@@ -126,21 +121,14 @@ class Simulator:
 
                 # 計算した最適価格の評価
                 avg_prices = get_item2avg_prices(df=self.train_df, items=self.items)
-                scaled_avg_prices = inverse_transform(
-                    scaler=self.train_scaler,
-                    item2prices=avg_prices,
-                    X_df=self.train_df[self.feature_cols],
-                )
                 evaluator = Evaluator(
-                    scaled_test_df=self.scaled_test_df,
-                    original_test_df=self.test_df,
+                    test_df=self.test_df,
                     label2item=self.label2item,
                     item2predictor=self.test_predictors[
                         dataset_name, predictor_name
                     ].item2predictor,
-                    scaled_opt_prices=optimizer.result.opt_prices,
-                    scaled_avg_prices=scaled_avg_prices,
-                    scaler=self.train_scaler,
+                    opt_prices=optimizer.result.opt_prices,
+                    avg_prices=avg_prices,
                 )
                 evaluator.run()
                 self.evaluators[dataset_name, model_name, algo_name] = evaluator
@@ -169,35 +157,11 @@ class Simulator:
         )
         self.test_df.reset_index(drop=True, inplace=True)
 
-    def scale(self, scaling_type: Optional[str]) -> None:
-        """正規化・標準化などのスケーリングを実施"""
-        self.train_scaler = select_scaler(scaling_type=scaling_type)
-        self.test_scaler = select_scaler(scaling_type=scaling_type)
-        if select_scaler(scaling_type=scaling_type) is None:
-            self.scaled_train_df = self.train_df.copy()
-            self.scaled_test_df = self.test_df.copy()
-        else:
-            X_train = pd.DataFrame(
-                self.train_scaler.fit_transform(self.train_df[self.feature_cols]),
-                columns=self.feature_cols,
-            )
-            X_test = pd.DataFrame(
-                self.test_scaler.fit_transform(self.test_df[self.feature_cols]),
-                columns=self.feature_cols,
-            )
-            self.scaled_train_df = pd.concat([X_train, self.train_df[self.target_cols]], axis=1)
-            self.scaled_test_df = pd.concat([X_test, self.test_df[self.target_cols]], axis=1)
-
-        assert self.train_df.shape == self.scaled_train_df.shape
-        assert self.test_df.shape == self.scaled_test_df.shape
-        assert self.train_df.columns.tolist() == self.scaled_train_df.columns.tolist()
-        assert self.test_df.columns.tolist() == self.scaled_test_df.columns.tolist()
-
     def train(self, dataset_name: str, predictor_name: str) -> None:
         """学習・テストデータに対する予測モデルを作成"""
         # 学習データに対する予測モデルを構築
         train_predictors = PredictorHandler(
-            train_df=self.scaled_train_df,
+            train_df=self.train_df,
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="train",
@@ -207,7 +171,7 @@ class Simulator:
 
         # テストデータに対する予測モデルを構築
         test_predictors = PredictorHandler(
-            train_df=self.scaled_test_df,
+            train_df=self.test_df,
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="test",
