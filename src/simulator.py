@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, TypeVar
 
 import pandas as pd
+import yaml
 from logzero import logger
 from sklearn.model_selection import train_test_split
 
@@ -17,6 +18,9 @@ from src.optimize.optimizer import Optimizer
 from src.optimize.params import ArtificialDataParameter, RealDataParameter, make_data_params
 from src.optimize.result import Result
 from src.predict.predictor import PredictorHandler
+from src.utils.dict_converter import dict2yaml
+from src.utils.handle_module import get_object_from_module
+from src.utils.paths import PRED_DIR
 
 IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")
@@ -159,12 +163,23 @@ class Simulator:
 
     def train(self, dataset_name: str, predictor_name: str) -> None:
         """学習・テストデータに対する予測モデルを作成"""
+        yaml_path = PRED_DIR / predictor_name / "hyper_parameter.yaml"
+        try:
+            with open(yaml_path) as file:
+                params = yaml.safe_load(file.read())
+                params_train = params[dataset_name][predictor_name]["train"]
+                params_test = params[dataset_name][predictor_name]["test"]
+        except FileNotFoundError or AttributeError:
+            params_train = None
+            params_test = None
+
         # 学習データに対する予測モデルを構築
         train_predictors = PredictorHandler(
             train_df=self.train_df,
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="train",
+            params=params_train,
         )
         train_predictors.run()
         self.train_predictors[dataset_name, predictor_name] = train_predictors
@@ -175,6 +190,7 @@ class Simulator:
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="test",
+            params=params_test,
         )
         test_predictors.run()
         self.test_predictors[dataset_name, predictor_name] = test_predictors
@@ -197,3 +213,41 @@ class Simulator:
             sales = df[price_col] * df[target_col]
             sales_item[item] = sales
         return sales_item
+
+    def tune_params(self) -> None:
+        """ハイパラチューニングを実行"""
+        model_algo_names = self.make_model_algo_names()
+        self.config_algo
+
+        # データセットごとの評価
+        best_params = dict()
+        for dataset_name, data_settings in self.config_data["realworld"].items():
+            best_params[dataset_name] = dict()
+            # データの前処理
+            self.preprocess(dataset_name, **data_settings)
+
+            # モデルごとに実行
+            for model_name, algo_name in model_algo_names:
+                predictor_name = self.config_opt["model"][model_name]["prediction"]
+                if algo_name == "solver_naive":
+                    best_params[dataset_name][predictor_name] = self._tune_params(predictor_name)
+        dict2yaml(
+            target_dict=best_params, save_path=PRED_DIR / predictor_name / "hyper_parameter.yaml"
+        )
+
+    def _tune_params(self, predictor_name: str) -> dict[str, float]:
+        module_path = PRED_DIR / predictor_name / "tune_params.py"
+        tune_params = get_object_from_module(module_path, "tune_params")
+        X_train = self.train_df.drop(columns=self.target_cols)
+        X_test = self.test_df.drop(columns=self.target_cols)
+
+        # 商品ごとにモデルのハイパラをチューニング
+        best_params = dict()
+        best_params["train"] = dict()
+        best_params["test"] = dict()
+        for target_col, item in self.label2item.items():
+            y_train = self.train_df[[target_col]]
+            y_test = self.test_df[[target_col]]
+            best_params["train"][item] = tune_params(X_train, y_train)
+            best_params["test"][item] = tune_params(X_test, y_test)
+        return best_params

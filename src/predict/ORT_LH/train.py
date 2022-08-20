@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import copy
+from typing import Optional
+
 import pandas as pd
 from interpretableai import iai
 
@@ -5,28 +10,27 @@ from src.predict.predictor import Predictor
 from src.utils.paths import RESULT_DIR
 
 
-def train(X: pd.DataFrame, y: pd.DataFrame, prefix: str, **kwargs) -> Predictor:
+def train(
+    X: pd.DataFrame,
+    y: pd.DataFrame,
+    prefix: Optional[str] = None,
+    params: Optional[dict[str, float]] = None,
+    **kwargs,
+) -> Predictor:
     feature_cols = X.columns.tolist()
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
+    if params is None or len(params) == 0:
+        params_ = {"max_depth": 3, "cp": 0.0012145072743561601}
+    else:
+        params_ = copy.deepcopy(params)
     # 学習
-    # model = iai.GridSearch(
-    #     iai.OptimalTreeRegressor(
-    #         random_seed=1,
-    #         normalize_y=False,
-    #         hyperplane_config={'sparsity': 'all'},
-    #         regression_sparsity="all",
-    #     ),
-    #     max_depth=range(1, 6),
-    #     regression_lambda=[0.005, 0.01, 0.05],
-    # )
     model = iai.OptimalTreeRegressor(
         random_seed=1,
         normalize_y=False,
         normalize_X=False,
         hyperplane_config={"sparsity": "all"},
-        max_depth=3,
-        cp=0.0012145072743561601,
+        **params_
         # regression_sparsity="all",
         # regression_lambda=0.01,
     )

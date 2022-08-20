@@ -5,12 +5,19 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import yaml
 
 
 def dict2json(target_dict: dict[Any, Any], save_path: Path) -> None:
     """辞書をjson形式で保存"""
     with open(save_path, "w") as f:
         json.dump(target_dict, f, indent=4)
+
+
+def dict2yaml(target_dict: dict[Any, Any], save_path: Path) -> None:
+    """辞書をyaml形式で保存"""
+    with open(save_path, "w") as f:
+        yaml.dump(target_dict, f)
 
 
 def dict2df(

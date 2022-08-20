@@ -32,12 +32,14 @@ class PredictorHandler:
         predictor_name: str,
         test_df: Optional[pd.DataFrame] = None,
         prefix: Optional[str] = None,
+        params: Optional[dict[str, float]] = None,
     ) -> None:
         self.train_df = train_df
         self.test_df = test_df
         self.label2item = label2item
         self.predictor_name = predictor_name
         self.prefix = prefix
+        self.params = params
         self.item2predictor: dict[str, Predictor] = dict()
         self.result = defaultdict(lambda: defaultdict(dict))
 
@@ -49,9 +51,13 @@ class PredictorHandler:
 
         # 商品ごとにモデルを構築・評価
         for target_col, item in self.label2item.items():
+            if self.params is None:
+                params = None
+            else:
+                params = self.params[item]
             # 学習
             y_train = self.train_df[[target_col]]
-            predictor = train(X=X_train, y=y_train, prefix=self.prefix)
+            predictor = train(X=X_train, y=y_train, prefix=self.prefix, params=params)
             predictor.item = item
             self.item2predictor[item] = predictor
 

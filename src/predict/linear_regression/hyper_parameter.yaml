@@ -1,0 +1,10 @@
+breakfast:
+  linear_regression:
+    test:
+      PL BT SZ FRSTD SHRD WHT: {}
+      PL HONEY NUT TOASTD OATS: {}
+      PL RAISIN BRAN: {}
+    train:
+      PL BT SZ FRSTD SHRD WHT: {}
+      PL HONEY NUT TOASTD OATS: {}
+      PL RAISIN BRAN: {}
