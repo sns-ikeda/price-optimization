@@ -126,8 +126,8 @@ class ConstraintsMixin:
                 for tp in self.index_set.R[m, t]:
                     self.problem += (
                         pulp.lpSum(
-                            self.constant.a.get((m, mp, tp), 0) * self.variable.x[mp, k]
-                            for mp, k in itertools.product(self.index_set.M, self.index_set.K)
+                            self.constant.a.get((m, mp, tp), 0) * self.variable.p[mp]
+                            for mp in self.index_set.M
                         )
                         + pulp.lpSum(
                             self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
@@ -141,18 +141,20 @@ class ConstraintsMixin:
                 for tp in self.index_set.L[m, t]:
                     self.problem += (
                         pulp.lpSum(
-                            self.constant.a.get((m, mp, tp), 0) * self.variable.x[mp, k]
-                            for mp, k in itertools.product(self.index_set.M, self.index_set.K)
+                            self.constant.a.get((m, mp, tp), 0) * self.variable.p[mp]
+                            for mp in self.index_set.M
                         )
                         + pulp.lpSum(
                             self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
                             for d in self.index_set.D
                         )
                         <= self.constant.b[m, tp]
-                        - (2 + self.constant.epsilon_max[m]) * self.variable.z[m, t]
-                        + 2
-                        + self.constant.epsilon_max[m]
-                        - self.constant.epsilon[m]
+                        - self.constant.big_M * self.variable.z[m, t]
+                        + self.constant.big_M
+                        # - (2 + self.constant.epsilon_max[m]) * self.variable.z[m, t]
+                        # + 2
+                        # + self.constant.epsilon_max[m]
+                        # - self.constant.epsilon[m]
                     )
 
     def _set_leafnode_constraints(self) -> None:
