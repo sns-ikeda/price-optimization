@@ -136,7 +136,6 @@ class ConstraintsMixin:
                         >= self.constant.b[m, tp]
                         + self.constant.big_M * self.variable.z[m, t]
                         - self.constant.big_M
-                        # >= self.constant.b[m, tp] + 2 * self.variable.z[m, t] - 2
                     )
                 for tp in self.index_set.L[m, t]:
                     self.problem += (
@@ -151,10 +150,6 @@ class ConstraintsMixin:
                         <= self.constant.b[m, tp]
                         - self.constant.big_M * self.variable.z[m, t]
                         + self.constant.big_M
-                        # - (2 + self.constant.epsilon_max[m]) * self.variable.z[m, t]
-                        # + 2
-                        # + self.constant.epsilon_max[m]
-                        # - self.constant.epsilon[m]
                     )
 
     def _set_leafnode_constraints(self) -> None:
