@@ -42,3 +42,7 @@ artificial:
 .PHONY: realworld
 realworld:
 	poetry run python src/main.py --data_type realworld
+
+.PHONY: tune_params
+tune_params:
+	poetry run python src/tuner.py
