@@ -128,9 +128,18 @@ def main():
         eval_result = defaultdict(lambda: defaultdict(dict))
         eval_result_detail = defaultdict(lambda: defaultdict(dict))
         for dataset_name, model_name, algo_name in simulator.evaluators.keys():
+            optimizer = simulator.optimizers[dataset_name, model_name, algo_name]
+            opt_prices = {"opt_prices": optimizer.result.opt_prices}
+            try:
+                q_train = {"q_train": optimizer.result.variable.q}
+            except AttributeError:
+                q_train = {"q_train": None}
             evaluator = simulator.evaluators[dataset_name, model_name, algo_name]
             eval_result[dataset_name][model_name][algo_name] = evaluator.result
-            eval_result_detail[dataset_name][model_name][algo_name] = evaluator.result_item
+            eval_result_detail[dataset_name][model_name][algo_name] = dict(
+                **evaluator.result_item, **opt_prices, **q_train
+            )
+
         dict2json(
             target_dict=eval_result,
             save_path=RESULT_DIR / data_type / "optimize" / "eval_result.json",
