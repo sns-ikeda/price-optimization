@@ -176,6 +176,7 @@ class Simulator:
         # 学習データに対する予測モデルを構築
         train_predictors = PredictorHandler(
             train_df=self.train_df,
+            test_df=self.test_df,
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="train",
