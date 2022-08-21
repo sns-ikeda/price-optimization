@@ -21,7 +21,7 @@ def train(
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
-        params_ = {"max_depth": 3, "cp": 0.0012145072743561601}
+        params_ = {"max_depth": 3, "cp": 0.001}
     else:
         params_ = copy.deepcopy(params)
     # 学習
