@@ -30,7 +30,7 @@ def train(
         normalize_y=False,
         normalize_X=False,
         hyperplane_config={"sparsity": "all"},
-        **params_
+        **params_,
         # regression_sparsity="all",
         # regression_lambda=0.01,
     )
