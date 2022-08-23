@@ -70,7 +70,6 @@ class PredictorHandler:
                 train_suffix = "train"
                 test_suffix = "test"
             plot(
-                X=X_train,
                 y=y_train,
                 y_pred=y_pred_train,
                 predictor_name=self.predictor_name,
@@ -89,7 +88,6 @@ class PredictorHandler:
                 # テストデータを用いて目的変数を予測
                 y_pred_test = predictor.predict(X_test)
                 plot(
-                    X=X_test,
                     y=y_test,
                     y_pred=y_pred_test,
                     predictor_name=self.predictor_name,
