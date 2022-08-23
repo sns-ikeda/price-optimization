@@ -11,7 +11,7 @@
 ```shell
 $ make environment
 ```
-- 最適決定木を初めて利用する場合は，下記コマンドを実行  
+- 最適決定木のライブラリ(interpretableai)を初めて利用する場合は，下記コマンドを実行  
 ```shell
 $ make iai
 ```
@@ -36,6 +36,10 @@ $ make artificial
 （ライセンスファイルiai.licが実行するPCのどこかに置かれている必要がある）
 ```shell
 $ make realworld
+```
+（生成されたファイルを削除する場合は下記コマンドを実行）
+```shell
+$ make clean
 ```
 ## Code Formatting
 ### formatting
