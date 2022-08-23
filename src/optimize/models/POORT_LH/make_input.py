@@ -46,11 +46,6 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     constant = Constant(
         beta=beta, beta0=beta0, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
     )
-    print("beta", constant.beta)
-    print("beta0", constant.beta0)
-    print("a", constant.a)
-    print("b", constant.b)
-    print("L", index_set.L)
     return index_set, constant
 
 
