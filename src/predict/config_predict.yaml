@@ -1,5 +1,8 @@
 ORT_L:
-  scaling: "minmax"
+  scaling: None
+
+ORT_LH:
+  scaling: None
 
 linear_regression:
   scaling: None

@@ -9,8 +9,14 @@ model:
   #   algorithm:
   #     - solver_naive
   #     # - solver_heuristics
-  #     - multi_start_local_search
+  #     # - multi_start_local_search
   #   prediction: ORT_L
+  # POORT_LH:
+  #   algorithm:
+  #     - solver_naive
+  #     # - solver_heuristics
+  #     # - multi_start_local_search
+  #   prediction: ORT_LH
   POLR:
     algorithm:
       - solver_naive
