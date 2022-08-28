@@ -167,8 +167,12 @@ class Simulator:
         try:
             with open(yaml_path) as file:
                 params = yaml.safe_load(file.read())
-                params_train = params[dataset_name][predictor_name]["train"]
-                params_test = params[dataset_name][predictor_name]["test"]
+                if params is None:
+                    params_train = None
+                    params_test = None
+                else:
+                    params_train = params[dataset_name][predictor_name]["train"]
+                    params_test = params[dataset_name][predictor_name]["test"]
         except FileNotFoundError or AttributeError:
             params_train = None
             params_test = None
