@@ -97,6 +97,8 @@ class PredictorHandler:
                 )
                 # テストデータを用いたときの評価
                 self.evaluate(y=y_test, y_pred=y_pred_test, split_type="test", item=item)
+        # 結果の後処理
+        self.postprocess_result()
 
     def evaluate(self, y: np.array, y_pred: np.array, split_type: str, item: str) -> None:
         # 二乗平均平方根誤差
@@ -107,3 +109,14 @@ class PredictorHandler:
         r2 = round(r2_score(y, y_pred), 2)
         self.result["r2"][split_type][item] = r2
         logger.info(f"R^2 for {split_type} data [{item}]: {r2}")
+
+    def postprocess_result(self) -> None:
+        metrics = ["rmse", "r2"]
+        split_types =["train"]
+        if self.test_df is not None:
+            split_types.append("test")
+        for metric in metrics:
+            for split_type in split_types:
+                results_dict = self.result[metric][split_type]
+                mean = round(np.mean(list(results_dict.values())), 2)
+                self.result[metric][split_type]["mean"] = mean
