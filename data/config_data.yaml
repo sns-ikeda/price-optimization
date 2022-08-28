@@ -2,7 +2,7 @@ realworld:
   breakfast:
     store_num: 25027
     category: "COLD CEREAL"
-    manufacturer: "PRIVATE LABEL"
+    manufacturer: "POST FOODS"
     target_col: "UNITS"
     base_cols:
         - "YEAR"
