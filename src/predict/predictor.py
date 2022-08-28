@@ -43,11 +43,26 @@ class PredictorHandler:
         self.item2predictor: dict[str, Predictor] = dict()
         self.result = defaultdict(lambda: defaultdict(dict))
 
-    def run(self) -> None:
+    def run(self, item2features: Optional[dict[str, list[str]]] = None) -> None:
         module_path = PRED_DIR / self.predictor_name / "train.py"
         train = get_object_from_module(module_path, "train")
         target_cols = list(self.label2item.keys())
-        X_train = self.train_df.drop(columns=target_cols)
+        items = list(self.label2item.values())
+
+        X_train_base = self.train_df.drop(columns=target_cols)
+        if self.test_df is not None:
+            X_test_base = self.test_df.drop(columns=target_cols)
+        else:
+            X_test_base = None
+        if item2features is not None:
+            X_trains = {item: X_train_base[item2features[item]] for item in items}
+            try:
+                X_tests = {item: X_test_base[item2features[item]] for item in items}
+            except TypeError:
+                X_tests = {item: X_test_base for item in items}
+        else:
+            X_trains = {item: X_train_base for item in items}
+            X_tests = {item: X_test_base for item in items}
 
         # 商品ごとにモデルを構築・評価
         for target_col, item in self.label2item.items():
@@ -56,6 +71,7 @@ class PredictorHandler:
             else:
                 params = self.params[item]
             # 学習
+            X_train = X_trains[item]
             y_train = self.train_df[[target_col]]
             predictor = train(X=X_train, y=y_train, prefix=self.prefix, params=params)
             predictor.item = item
@@ -82,7 +98,7 @@ class PredictorHandler:
 
             # テストデータに対する精度評価
             if self.test_df is not None:
-                X_test = self.test_df.drop(columns=target_cols)
+                X_test = X_tests[item]
                 y_test = self.test_df[[target_col]]
 
                 # テストデータを用いて目的変数を予測
@@ -112,7 +128,7 @@ class PredictorHandler:
 
     def postprocess_result(self) -> None:
         metrics = ["rmse", "r2"]
-        split_types =["train"]
+        split_types = ["train"]
         if self.test_df is not None:
             split_types.append("test")
         for metric in metrics:
