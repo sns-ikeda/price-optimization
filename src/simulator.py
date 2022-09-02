@@ -129,13 +129,17 @@ class Simulator:
 
                 # 計算した最適価格の評価
                 avg_prices = get_item2avg_prices(df=self.train_df, items=self.items)
+                if optimizer.result.opt_prices:
+                    opt_prices = optimizer.result.opt_prices
+                else:
+                    raise Exception("couldn't get optimal prices")
                 evaluator = Evaluator(
                     test_df=self.test_df,
                     label2item=self.label2item,
                     item2predictor=self.test_predictors[
                         dataset_name, predictor_name
                     ].item2predictor,
-                    opt_prices=optimizer.result.opt_prices,
+                    opt_prices=opt_prices,
                     avg_prices=avg_prices,
                 )
                 evaluator.run()
@@ -155,6 +159,7 @@ class Simulator:
         """データの基本的な前処理"""
         dp = DataPreprocessor(dataset_name)
         processed_df = dp.preprocess(**data_settings)
+        logger.info(f"columns: {list(processed_df.columns)}")
         self.target_cols = dp.get_target_cols(prefix=data_settings["target_col"])
         self.feature_cols = dp.get_feature_cols(target_cols=self.target_cols)
         self.label2item = get_label2item(target_cols=self.target_cols)
@@ -194,11 +199,12 @@ class Simulator:
         train_predictors.run()
         self.train_predictors[dataset_name, predictor_name] = train_predictors
 
+        # params_test = {"max_depth": 3, "cp": 0.001}
         # テストデータに対する予測モデルを構築
         test_predictors = PredictorHandler(
             train_df=self.test_df,
             label2item=self.label2item,
-            predictor_name=predictor_name,
+            predictor_name="ORT_LH",
             prefix="test",
             suffix=f"tr{self.train_size}",
             params=params_test,
