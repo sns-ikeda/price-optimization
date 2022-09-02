@@ -52,11 +52,31 @@ class DataPreprocessor:
         return feature_cols
 
 
+def get_item_from_label(target_col: str) -> str:
+    item = target_col.split("_")[-1]
+    return item
+
+
+def get_items_from_labels(target_cols: list[str]) -> list[str]:
+    items = [get_item_from_label(target_col) for target_col in target_cols]
+    return items
+
+
+def get_label_from_item(item: str, prefix: str = "UNITS") -> str:
+    label = prefix + "_" + item
+    return label
+
+
+def get_labels_from_items(items: list[str], prefix: str = "UNITS") -> list[str]:
+    labels = [get_label_from_item(item, prefix=prefix) for item in items]
+    return labels
+
+
 def get_label2item(target_cols: list[str]) -> dict[str, str]:
     label2item = dict()
-    for col in target_cols:
-        item = col.split("_")[-1]
-        label2item[col] = item
+    for target_col in target_cols:
+        item = get_item_from_label(target_col)
+        label2item[target_col] = item
     return label2item
 
 

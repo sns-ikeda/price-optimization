@@ -103,6 +103,7 @@ class Simulator:
                     num_of_prices=data_settings["num_of_prices"],
                     items=list(self.label2item.values()),
                 )
+                logger.info(f"price candidates: {item2prices}")
                 # 最適化モデルの入力データを作成
                 data_param = RealDataParameter(
                     num_of_prices=data_settings["num_of_prices"],
@@ -135,12 +136,12 @@ class Simulator:
                     raise Exception("couldn't get optimal prices")
                 evaluator = Evaluator(
                     test_df=self.test_df,
-                    label2item=self.label2item,
                     item2predictor=self.test_predictors[
                         dataset_name, predictor_name
                     ].item2predictor,
                     opt_prices=opt_prices,
                     avg_prices=avg_prices,
+                    item2prices=item2prices,
                 )
                 evaluator.run()
                 self.evaluators[dataset_name, model_name, algo_name] = evaluator

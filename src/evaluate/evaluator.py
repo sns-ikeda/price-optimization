@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import pandas as pd
 
+from src.data_preprocess.preprocessor import get_item_from_label, get_labels_from_items
 from src.predict.predictor import Predictor
 
 
@@ -11,18 +12,19 @@ class Evaluator:
     def __init__(
         self,
         test_df: pd.DataFrame,
-        label2item: dict[str, str],
         item2predictor: dict[str, Predictor],
         opt_prices: dict[str, float],
         avg_prices: dict[str, float],
+        item2prices: dict[str, list[float]],
     ) -> None:
         self.test_df = test_df
-        self.label2item = label2item
         self.item2predictor = item2predictor
         self.opt_prices = opt_prices
         self.avg_prices = avg_prices
+        self.item2prices = item2prices
 
-        self.target_cols = list(self.label2item.keys())
+        items = list(self.item2predictor.keys())
+        self.target_cols = get_labels_from_items(items)
         self.feature_cols = [col for col in self.test_df.columns if col not in self.target_cols]
         self.result = dict()
         self.result_item = defaultdict(lambda: defaultdict(dict))
@@ -32,7 +34,8 @@ class Evaluator:
         X_avg = self.make_X(item_prices=self.avg_prices)
 
         X_test = self.test_df[self.feature_cols]
-        for target_col, item in self.label2item.items():
+        for target_col in self.target_cols:
+            item = get_item_from_label(target_col)
             y_test = self.test_df[target_col]
             # 推論
             predictor = self.item2predictor[item]
@@ -61,12 +64,17 @@ class Evaluator:
             self.result_item["pred_sales_at_opt_price"][item] = round(
                 float(sum(y_pred_opt.flatten() * opt_price)), 1
             )
+            # 価格候補
+            self.result_item["price_candidates"][item] = self.item2prices[item]
         for metric, result_item in self.result_item.items():
-            self.result[metric] = float(sum(result_item.values()))
+            try:
+                self.result[metric] = float(sum(result_item.values()))
+            except TypeError:
+                pass
 
     def make_X(self, item_prices: dict[str, float]) -> pd.DataFrame:
         X = self.test_df[self.feature_cols].copy()
-        for item, opt_price in item_prices.items():
+        for item, price in item_prices.items():
             price_col = "PRICE" + "_" + item
-            X[price_col] = opt_price
+            X[price_col] = price
         return X
