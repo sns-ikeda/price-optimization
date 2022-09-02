@@ -34,7 +34,7 @@ class Constant:
     b: dict[tuple[str, int], float]
     g: dict[str, float]
     P: dict[tuple[str, int], float]
-    big_M: int = 100000
+    big_M: int = 10000000
 
 
 class Variable:
