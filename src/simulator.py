@@ -49,12 +49,14 @@ class Simulator:
         self.data_params: list[ArtificialDataParameter | RealDataParameter] = make_data_params(
             config_data=config_data, data_type=data_type
         )
+        self.train_size = None
+        self.test_size = None
 
-    def run(self, iteration: int = 1) -> None:
+    def run(self, iteration: int = 1, train_size: float = 0.5) -> None:
         if self.data_type == "artificial":
             self.run_artificial(iteration)
         elif self.data_type == "realworld":
-            self.run_realworld()
+            self.run_realworld(train_size)
 
     def run_artificial(self, iteration: int) -> None:
         """人工データによるシミュレーションを実行"""
@@ -76,8 +78,10 @@ class Simulator:
                     results.append(optimizer.result)
             self.artificial_results_dict[(model_name, algo_name)] = results
 
-    def run_realworld(self) -> None:
+    def run_realworld(self, train_size: float) -> None:
         """実データによるシミュレーションを実行"""
+        self.train_size = round(train_size, 3)
+        self.test_size = round(1 - self.train_size, 3)
         model_algo_names = self.make_model_algo_names()
         algo_settings = self.config_algo
 
@@ -155,9 +159,9 @@ class Simulator:
         self.feature_cols = dp.get_feature_cols(target_cols=self.target_cols)
         self.label2item = get_label2item(target_cols=self.target_cols)
         self.items = list(self.label2item.values())
-
+        logger.info(f"train_size: {self.train_size}, test_size: {self.test_size}")
         self.train_df, self.test_df = train_test_split(
-            processed_df, train_size=0.5, test_size=0.5, shuffle=False
+            processed_df, train_size=self.train_size, test_size=self.test_size, shuffle=False
         )
         self.test_df.reset_index(drop=True, inplace=True)
 
@@ -184,6 +188,7 @@ class Simulator:
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="train",
+            suffix=f"tr{self.train_size}",
             params=params_train,
         )
         train_predictors.run()
@@ -195,6 +200,7 @@ class Simulator:
             label2item=self.label2item,
             predictor_name=predictor_name,
             prefix="test",
+            suffix=f"tr{self.train_size}",
             params=params_test,
         )
         test_predictors.run()

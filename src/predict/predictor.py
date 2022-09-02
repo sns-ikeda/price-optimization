@@ -32,6 +32,7 @@ class PredictorHandler:
         predictor_name: str,
         test_df: Optional[pd.DataFrame] = None,
         prefix: Optional[str] = None,
+        suffix: Optional[str] = None,
         params: Optional[dict[str, float]] = None,
     ) -> None:
         self.train_df = train_df
@@ -39,6 +40,7 @@ class PredictorHandler:
         self.label2item = label2item
         self.predictor_name = predictor_name
         self.prefix = prefix
+        self.suffix = suffix
         self.params = params
         self.item2predictor: dict[str, Predictor] = dict()
         self.result = defaultdict(lambda: defaultdict(dict))
@@ -85,6 +87,9 @@ class PredictorHandler:
             else:
                 train_suffix = "train"
                 test_suffix = "test"
+            if self.suffix is not None:
+                train_suffix = train_suffix + f"_{self.suffix}"
+                test_suffix = test_suffix + f"_{self.suffix}"
             plot(
                 y=y_train,
                 y_pred=y_pred_train,
