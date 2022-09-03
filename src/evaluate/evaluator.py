@@ -84,9 +84,14 @@ class Evaluator:
             # 価格候補
             self.result_item["price_candidates"][item] = self.item2prices[item]
         # 理論値
-        self.result_item["theoretical_sales"] = self.calc_theoretical_sales()
+        if len(self.target_cols) <= 3 and len(list(self.item2prices.values())[0]) <= 5:
+            theoretical_sales_item, theoretical_opt_prices = self.calc_theoretical_values()
+            self.result_item["theoretical_sales"] = theoretical_sales_item
+            self.result_item["theoretical_opt_prices"] = theoretical_opt_prices
 
         for metric, result_item in self.result_item.items():
+            if metric == "theoretical_opt_prices":
+                continue
             try:
                 self.result[metric] = float(sum(result_item.values()))
             except TypeError:
@@ -99,14 +104,15 @@ class Evaluator:
             X[price_col] = price
         return X
 
-    def calc_theoretical_sales(self) -> dict[str, float]:
+    def calc_theoretical_values(self) -> tuple[dict[str, float], dict[str, float]]:
+        theoretical_opt_prices = dict()
         theoretical_sales_item = dict()
         theoretical_sales = 0
         for prices in itertools.product(*self.item2prices.values()):
             item_prices = dict(zip(self.item2prices.keys(), prices))
             X = self.make_X(item_prices=item_prices)
 
-            tmp_dict = dict()
+            tmp_sales_dict = dict()
             for target_col in self.target_cols:
                 item = get_item_from_label(target_col)
                 # 推論
@@ -114,11 +120,12 @@ class Evaluator:
                 y_pred = predictor.predict(X)
                 price_col = "PRICE" + "_" + item
                 price = X[price_col].values
-                tmp_dict[item] = round(float(sum(y_pred.flatten() * price)), 1)
-            if sum(tmp_dict.values()) > theoretical_sales:
-                theoretical_sales_item = tmp_dict
-                theoretical_sales = sum(tmp_dict.values())
-        return theoretical_sales_item
+                tmp_sales_dict[item] = round(float(sum(y_pred.flatten() * price)), 1)
+            if sum(tmp_sales_dict.values()) > theoretical_sales:
+                theoretical_sales_item = tmp_sales_dict
+                theoretical_sales = sum(tmp_sales_dict.values())
+                theoretical_opt_prices = item_prices
+        return theoretical_sales_item, theoretical_opt_prices
 
     def make_result_df(self) -> pd.DataFrame:
         result_df = self.test_df.copy()

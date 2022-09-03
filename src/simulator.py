@@ -132,6 +132,8 @@ class Simulator:
                 avg_prices = get_item2avg_prices(df=self.train_df, items=self.items)
                 if optimizer.result.opt_prices:
                     opt_prices = optimizer.result.opt_prices
+                    logger.info(f"opt_prices: {opt_prices}")
+                    logger.info(f"q: {optimizer.result.variable.q}")
                 else:
                     raise Exception("couldn't get optimal prices")
                 evaluator = Evaluator(
