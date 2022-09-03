@@ -7,7 +7,7 @@ from src.optimize.processing.binary_tree import (  # noqa
     node2parent,
 )
 from src.optimize.processing.get_opt_prices import get_opt_prices  # noqa
-from src.optimize.processing.rename_dict import rename_dict  # noqa
+from src.optimize.processing.renamer import rename_dict, rename_feature  # noqa
 from src.optimize.processing.result_processor import (  # noqa
     average_results_dict,
     transform_artificial_results,

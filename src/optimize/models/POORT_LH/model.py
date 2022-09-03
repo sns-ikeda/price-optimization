@@ -29,7 +29,6 @@ class Constant:
     beta: dict[tuple[str, str, int], float]
     beta0: dict[tuple[str, int], float]
     epsilon: dict[str, float]
-    epsilon_max: dict[str, float]
     a: dict[tuple[str, str, int], float]
     b: dict[tuple[str, int], float]
     g: dict[str, float]
@@ -146,7 +145,7 @@ class ConstraintsMixin:
                         + pulp.lpSum(
                             self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
                             for d in self.index_set.D
-                        )
+                        ) + self.constant.epsilon
                         <= self.constant.b[m, tp]
                         - self.constant.big_M * self.variable.z[m, t]
                         + self.constant.big_M

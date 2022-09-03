@@ -7,7 +7,7 @@ from logzero import logger
 
 from src.optimize.models.POORT_LH.model import Constant, IndexSet
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
-from src.optimize.processing import rename_dict
+from src.optimize.processing import rename_dict, rename_feature
 
 
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
@@ -28,8 +28,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         predictor = params.item2predictor[m]
         _beta = get_beta(model=predictor.model, item=m)
         _beta0 = get_beta0(model=predictor.model, item=m)
-        epsilon[m] = 0.001
-        epsilon_max[m] = 100000
+        epsilon[m] = 0.0001
         _a = get_a(model=predictor.model, item=m)
         _b = get_b(model=predictor.model, item=m)
         TL[m] = get_leafnodes(model=predictor.model)
@@ -45,7 +44,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     D = list(g.keys())
     index_set = IndexSet(D=D, M=M, K=K, TL=TL, L=L, R=R)
     constant = Constant(
-        beta=beta, beta0=beta0, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
+        beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P
     )
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")
@@ -133,11 +132,14 @@ def get_a(model: iai.OptimalTreeRegressor, item: str) -> dict[tuple[str, str, in
         try:
             split_weights = model.get_split_weights(node_index=t)
         except ValueError:
+            split_feature = model.get_split_feature(node_index=t)
+            item_ = rename_feature(split_feature)
+            a[item, item_, t] = 1
             continue
         for _split_weight_dict in split_weights:
             split_weight_dict = rename_dict(_split_weight_dict)
-            for col, value in split_weight_dict.items():
-                a[item, col, t] = value
+            for item_, value in split_weight_dict.items():
+                a[item, item_, t] = value
     return a
 
 
