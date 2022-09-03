@@ -183,6 +183,9 @@ def main():
                 pred_sales_at_opt_price_df.loc[model_name, train_size] = evaluator.result[
                     "pred_sales_at_opt_price"
                 ]
+                evaluator.result_df.to_csv(
+                    RESULT_DIR / data_type / "predict" / f"result_df_{model_name}.csv"
+                )
 
         # json形式で結果を出力
         dict2json(
