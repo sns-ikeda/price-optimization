@@ -165,9 +165,13 @@ class Simulator:
         self.feature_cols = dp.get_feature_cols(target_cols=self.target_cols)
         self.label2item = get_label2item(target_cols=self.target_cols)
         self.items = list(self.label2item.values())
+
         logger.info(f"train_size: {self.train_size}, test_size: {self.test_size}")
         self.train_df, self.test_df = train_test_split(
             processed_df, train_size=self.train_size, test_size=self.test_size, shuffle=False
+        )
+        logger.info(
+            f"# of rows [train]: {len(self.train_df)}, # of rows [test]: {len(self.test_df)}"
         )
         self.test_df.reset_index(drop=True, inplace=True)
 
@@ -186,6 +190,8 @@ class Simulator:
         except FileNotFoundError or AttributeError:
             params_train = None
             params_test = None
+        logger.info(f"params_train: {params_train}, params_test: {params_test}")
+        # item2features = {item: ["PRICE_" + item] for item in self.items}
 
         # 学習データに対する予測モデルを構築
         train_predictors = PredictorHandler(
@@ -200,7 +206,7 @@ class Simulator:
         train_predictors.run()
         self.train_predictors[dataset_name, predictor_name] = train_predictors
 
-        # params_test = {"max_depth": 3, "cp": 0.001}
+        params_test = {item: {"max_depth": 5, "cp": 0.001} for item in self.items}
         # テストデータに対する予測モデルを構築
         test_predictors = PredictorHandler(
             train_df=self.test_df,

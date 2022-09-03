@@ -5,6 +5,7 @@ from typing import Optional
 
 import pandas as pd
 from interpretableai import iai
+from logzero import logger
 
 from src.predict.predictor import Predictor
 from src.utils.paths import RESULT_DIR
@@ -21,10 +22,11 @@ def train(
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
-        params_ = {"max_depth": 3, "cp": 0.001}
+        params_ = {"max_depth": 2, "cp": 0.001}
     else:
         params_ = copy.deepcopy(params)
     # 学習
+    logger.info("fitting by ORT_LH...")
     model = iai.OptimalTreeRegressor(
         random_seed=1,
         normalize_y=False,

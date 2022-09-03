@@ -33,7 +33,7 @@ class PredictorHandler:
         test_df: Optional[pd.DataFrame] = None,
         prefix: Optional[str] = None,
         suffix: Optional[str] = None,
-        params: Optional[dict[str, float]] = None,
+        params: Optional[dict[str, dict[str, float]]] = None,
     ) -> None:
         self.train_df = train_df
         self.test_df = test_df
@@ -68,6 +68,7 @@ class PredictorHandler:
 
         # 商品ごとにモデルを構築・評価
         for target_col, item in self.label2item.items():
+            logger.info(f"item: {item}")
             if self.params is None:
                 params = None
             else:

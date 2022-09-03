@@ -46,6 +46,11 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     constant = Constant(
         beta=beta, beta0=beta0, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
     )
+    print("beta", beta)
+    print("beta0", beta0)
+    print("g", g)
+    print("a", a)
+    print("b", b)
     return index_set, constant
 
 
@@ -70,8 +75,6 @@ def get_beta(model: iai.OptimalTreeRegressor, item: str) -> dict[tuple[str, str,
     beta = dict()
     for t in leaf_nodes:
         coefs = model.get_regression_weights(node_index=t)
-        print("item", item)
-        print("coef", coefs)
         for _coef_dict in coefs:
             coef_dict = rename_dict(_coef_dict)
             for col, value in coef_dict.items():
