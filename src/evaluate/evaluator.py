@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from collections import defaultdict
 
 import pandas as pd
@@ -28,6 +29,7 @@ class Evaluator:
         self.feature_cols = [col for col in self.test_df.columns if col not in self.target_cols]
         self.result = dict()
         self.result_item = defaultdict(lambda: defaultdict(dict))
+        self.result_df = self.make_result_df()
 
     def run(self) -> None:
         X_opt = self.make_X(item_prices=self.opt_prices)
@@ -37,12 +39,27 @@ class Evaluator:
         for target_col in self.target_cols:
             item = get_item_from_label(target_col)
             y_test = self.test_df[target_col]
+
             # 推論
             predictor = self.item2predictor[item]
             y_pred = predictor.predict(X_test)
             y_pred_opt = predictor.predict(X_opt)
             y_pred_avg = predictor.predict(X_avg)
 
+            # result_dfに格納
+            self.result_df = pd.concat(
+                [self.result_df, pd.DataFrame(y_pred, columns=[target_col + "_pred"])], axis=1
+            )
+            self.result_df = pd.concat(
+                [self.result_df, pd.DataFrame(y_pred_opt, columns=[target_col + "_pred_opt"])],
+                axis=1,
+            )
+            self.result_df = pd.concat(
+                [self.result_df, pd.DataFrame(y_pred_avg, columns=[target_col + "_pred_avg"])],
+                axis=1,
+            )
+
+            # 各種数値を計算
             price_col = "PRICE" + "_" + item
             actual_price = self.test_df[price_col].values
             opt_price = X_opt[price_col].values
@@ -66,6 +83,9 @@ class Evaluator:
             )
             # 価格候補
             self.result_item["price_candidates"][item] = self.item2prices[item]
+        # 理論値
+        self.result_item["theoretical_sales"] = self.calc_theoretical_sales()
+
         for metric, result_item in self.result_item.items():
             try:
                 self.result[metric] = float(sum(result_item.values()))
@@ -78,3 +98,38 @@ class Evaluator:
             price_col = "PRICE" + "_" + item
             X[price_col] = price
         return X
+
+    def calc_theoretical_sales(self) -> dict[str, float]:
+        theoretical_sales_item = dict()
+        theoretical_sales = 0
+        for prices in itertools.product(*self.item2prices.values()):
+            item_prices = dict(zip(self.item2prices.keys(), prices))
+            X = self.make_X(item_prices=item_prices)
+
+            tmp_dict = dict()
+            for target_col in self.target_cols:
+                item = get_item_from_label(target_col)
+                # 推論
+                predictor = self.item2predictor[item]
+                y_pred = predictor.predict(X)
+                price_col = "PRICE" + "_" + item
+                price = X[price_col].values
+                tmp_dict[item] = round(float(sum(y_pred.flatten() * price)), 1)
+            if sum(tmp_dict.values()) > theoretical_sales:
+                theoretical_sales_item = tmp_dict
+                theoretical_sales = sum(tmp_dict.values())
+        return theoretical_sales_item
+
+    def make_result_df(self) -> pd.DataFrame:
+        result_df = self.test_df.copy()
+        # 最適価格のdf
+        X_opt = self.make_X(item_prices=self.opt_prices)
+        opt_columns = {col: col + "_opt" for col in X_opt.columns}
+        X_opt = X_opt.rename(columns=opt_columns)
+        # 平均価格のdf
+        X_avg = self.make_X(item_prices=self.avg_prices)
+        avg_columns = {col: col + "_avg" for col in X_avg.columns}
+        X_avg = X_avg.rename(columns=avg_columns)
+        # concat
+        result_df = pd.concat([result_df, X_opt, X_avg], axis=1)
+        return result_df
