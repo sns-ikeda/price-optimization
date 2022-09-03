@@ -18,7 +18,9 @@ def test_ORT_LH():
             }
         }
     }
-    config_opt = {"model": {"POLR": {"algorithm": ["solver_naive"], "prediction": "linear_regression"}}}
+    config_opt = {
+        "model": {"POLR": {"algorithm": ["solver_naive"], "prediction": "linear_regression"}}
+    }
     config_algo = {"solver_naive": {"solver": "Cbc", "TimeLimit": 600}}
     config_pred = {}
     simulator = Simulator(
@@ -29,16 +31,14 @@ def test_ORT_LH():
         config_pred=config_pred,
     )
     simulator.run(train_size=train_size)
-    objective1 = simulator.optimizers[('breakfast', 'POLR', 'solver_naive')].result.objective
+    objective1 = simulator.optimizers[("breakfast", "POLR", "solver_naive")].result.objective
 
     evaluator = Evaluator(
         test_df=simulator.train_df.head(1),
-        item2predictor=simulator.train_predictors[
-            "breakfast", "linear_regression"
-        ].item2predictor,
-        opt_prices=simulator.evaluators[('breakfast', 'POLR', 'solver_naive')].opt_prices,
+        item2predictor=simulator.train_predictors["breakfast", "linear_regression"].item2predictor,
+        opt_prices=simulator.evaluators[("breakfast", "POLR", "solver_naive")].opt_prices,
         avg_prices={},
-        item2prices=simulator.evaluators[('breakfast', 'POLR', 'solver_naive')].item2prices
+        item2prices=simulator.evaluators[("breakfast", "POLR", "solver_naive")].item2prices,
     )
     evaluator.run()
     objective2 = evaluator.result["pred_sales_at_opt_price"]
