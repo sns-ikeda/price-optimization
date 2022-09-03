@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 
 from interpretableai import iai
+from logzero import logger
 
 from src.optimize.models.POORT_LH.model import Constant, IndexSet
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
@@ -46,11 +47,11 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     constant = Constant(
         beta=beta, beta0=beta0, epsilon=epsilon, epsilon_max=epsilon_max, a=a, b=b, g=g, P=P
     )
-    print("beta", beta)
-    print("beta0", beta0)
-    print("g", g)
-    print("a", a)
-    print("b", b)
+    logger.info(f"beta: {beta}")
+    logger.info(f"beta0: {beta0}")
+    logger.info(f"g: {g}")
+    logger.info(f"a: {a}")
+    logger.info(f"b: {b}")
     return index_set, constant
 
 

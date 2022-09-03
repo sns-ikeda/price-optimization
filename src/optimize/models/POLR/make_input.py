@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import itertools
 
+from logzero import logger
+
 from src.optimize.models.POLR.model import Constant, IndexSet
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.processing import rename_dict
@@ -36,4 +38,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
     g = params.g
     index_set = IndexSet(D=D, M=M, K=K)
     constant = Constant(beta=beta, beta0=beta0, phi=phi, g=g, P=P)
+    logger.info(f"beta: {beta}")
+    logger.info(f"beta0: {beta0}")
+    logger.info(f"g: {g}")
     return index_set, constant
