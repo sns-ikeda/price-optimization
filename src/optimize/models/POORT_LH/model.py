@@ -33,7 +33,7 @@ class Constant:
     b: dict[tuple[str, int], float]
     g: dict[str, float]
     P: dict[tuple[str, int], float]
-    big_M: int = 10000000000
+    big_M: int = 100000
 
 
 class Variable:
@@ -145,7 +145,8 @@ class ConstraintsMixin:
                         + pulp.lpSum(
                             self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
                             for d in self.index_set.D
-                        ) + self.constant.epsilon
+                        )
+                        + self.constant.epsilon
                         <= self.constant.b[m, tp]
                         - self.constant.big_M * self.variable.z[m, t]
                         + self.constant.big_M
