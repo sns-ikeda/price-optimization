@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import Any
 
+import pandas as pd
+
+from src.configs import ArtificialConfig
 from src.predict.predictor import Predictor
 
 
@@ -51,19 +53,28 @@ class RealDataParameter:
 
 
 def make_data_params(
-    config_data: dict[str, Any], data_type: str, **kwargs
+    config: ArtificialConfig, data_type: str, **kwargs
 ) -> list[ArtificialDataParameter | RealDataParameter]:
     """シミュレーションで設定するパラメータの生成"""
     data_params = []
     if data_type == "artificial":
-        param = config_data[data_type]["params"]
-        for num_of_items in param["num_of_items"]:
+        for num_of_items in config.num_of_items:
             data_param = ArtificialDataParameter(
                 num_of_items=num_of_items,
-                num_of_prices=param["num_of_prices"],
-                num_of_other_features=param["num_of_other_features"],
-                depth_of_trees=param["depth_of_trees"],
-                base_price=param["base_price"],
+                num_of_prices=config.num_of_prices,
+                num_of_other_features=config.num_of_other_features,
+                depth_of_trees=config.depth_of_trees,
+                base_price=config.base_price,
             )
             data_params.append(data_param)
     return data_params
+
+
+def calc_g(train_df: pd.DataFrame, item2predictor: dict[str, Predictor]) -> dict[str, float]:
+    df = train_df.copy().head(1)
+    X = df.drop(columns=[predictor.target_col for predictor in item2predictor.values()])
+    feature_cols = X.columns.tolist()
+    price_cols = ["PRICE" + "_" + item for item in item2predictor.keys()]
+    other_feature_cols = [col for col in feature_cols if col not in price_cols]
+    g = {col: float(df[col]) for col in other_feature_cols}
+    return g

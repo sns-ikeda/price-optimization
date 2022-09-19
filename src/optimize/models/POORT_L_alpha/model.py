@@ -10,7 +10,7 @@ import pulp
 from gurobipy import GurobiError
 
 from src.optimize.processing import get_opt_prices
-from src.optimize.result import Result
+from src.optimize.result import OptResult
 from src.utils.paths import DATA_DIR
 
 
@@ -229,7 +229,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.objective = self.problem.objective.value()
         self.variable.to_value()
         opt_prices = get_opt_prices(x=self.variable.x, P=self.constant.P)
-        self.result = Result(
+        self.result = OptResult(
             calculation_time=elapsed_time,
             objective=self.objective,
             opt_prices=opt_prices,

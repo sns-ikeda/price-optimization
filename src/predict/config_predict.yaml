@@ -1,8 +1,0 @@
-ORT_L:
-  scaling: None
-
-ORT_LH:
-  scaling: None
-
-linear_regression:
-  scaling: None

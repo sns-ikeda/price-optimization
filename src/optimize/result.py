@@ -13,7 +13,7 @@ Variable = TypeVar("Variable")
 
 
 @dataclass(frozen=False)
-class Result:
+class OptResult:
     calculation_time: float
     objective: float
     opt_prices: dict[str, float]

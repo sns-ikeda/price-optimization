@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from src.utils.paths import ALGO_DIR, DATA_DIR, OPT_DIR, PRED_DIR, SRC_DIR
+from src.utils.paths import ALGO_DIR, DATA_PRE_DIR
 
 
 def read_config(filepath: Path | str) -> dict[str, Any]:
@@ -14,17 +15,29 @@ def read_config(filepath: Path | str) -> dict[str, Any]:
     return config
 
 
-# シミュレーションの設定を取得
-CONFIG_SIM = read_config(SRC_DIR / "config_simulation.yaml")
+@dataclass(frozen=True)
+class RealworldConfig:
+    dataset_name: str
+    predictor_name: str
+    algo_name: str
+    num_of_prices: int
+    train_size: float
 
-# データの設定を取得
-CONFIG_DATA = read_config(DATA_DIR / "config_data.yaml")
 
-# 最適化の設定を取得
-CONFIG_OPT = read_config(OPT_DIR / "config_optimize.yaml")
+@dataclass(frozen=True)
+class ArtificialConfig:
+    num_iteration: str
+    num_of_items: list[int]
+    num_of_prices: int
+    num_of_other_features: int
+    depth_of_trees: int
+    base_price: int
+    predictor_names: list[str]
+    algo_names: list[str]
 
-# アルゴリズムの設定を取得
-CONFIG_ALGO = read_config(ALGO_DIR / "config_algorithm.yaml")
 
-# 予測モデルの設定を取得
-CONFIG_PRED = read_config(PRED_DIR / "config_predict.yaml")
+# データの設定
+DATA_CONFIG = read_config(DATA_PRE_DIR / "data_config.yaml")
+
+# アルゴリズムの設定
+ALGO_CONFIG = read_config(ALGO_DIR / "algo_config.yaml")

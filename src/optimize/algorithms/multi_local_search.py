@@ -8,7 +8,7 @@ from logzero import logger
 from tqdm import tqdm
 
 from src.optimize.algorithms.base_algorithm import BaseAlgorithm
-from src.optimize.result import Result
+from src.optimize.result import OptResult
 
 
 class MultiLocalSearch(BaseAlgorithm):
@@ -35,7 +35,7 @@ class MultiLocalSearch(BaseAlgorithm):
         self.x_best = self.xs[opt_idx]
         self.z_best = self.zs[opt_idx]
         opt_prices = {item: self.constant.P[item, idx] for item, idx in self.x_best.items()}
-        self.result = Result(
+        self.result = OptResult(
             calculation_time=elapsed_time,
             objective=max(self.objectives, default=None),
             opt_prices=opt_prices,

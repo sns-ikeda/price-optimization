@@ -14,7 +14,7 @@ from src.utils.paths import RESULT_DIR
 def train(
     X: pd.DataFrame,
     y: pd.DataFrame,
-    prefix: Optional[str] = None,
+    suffix: Optional[str] = None,
     params: Optional[dict[str, float]] = None,
     **kwargs,
 ) -> Predictor:
@@ -37,8 +37,8 @@ def train(
         # regression_lambda=0.01,
     )
     model.fit(X, y[target_col].values)
-    if prefix is not None:
-        save_path = RESULT_DIR / "realworld" / "predict" / f"ORT_{item}_{prefix}.html"
+    if suffix is not None:
+        save_path = RESULT_DIR / "realworld" / "predict" / f"ORT_{item}_{suffix}.html"
     else:
         save_path = RESULT_DIR / "realworld" / "predict" / f"ORT_{item}.html"
     model.write_html(str(save_path))

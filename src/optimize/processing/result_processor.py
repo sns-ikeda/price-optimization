@@ -4,11 +4,11 @@ from collections import defaultdict
 
 import numpy as np
 
-from src.optimize.result import Result
+from src.optimize.result import OptResult
 
 
 def transform_artificial_results(
-    results: list[int, dict[str, dict[str, Result]]], attribute: str
+    results: list[int, dict[str, dict[str, OptResult]]], attribute: str
 ) -> dict[str, dict[int, list(float)]]:
     """計算結果を整形"""
     transformed_results_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))

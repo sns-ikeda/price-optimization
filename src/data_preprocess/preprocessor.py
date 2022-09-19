@@ -6,46 +6,62 @@ import numpy as np
 import pandas as pd
 from logzero import logger
 
-from src.utils.handle_module import get_object_from_module
-from src.utils.paths import DATA_PRE_DIR
+from src.utils.module_handler import get_object_from_module
+from src.utils.paths import DATA_DIR, DATA_PRE_DIR
 
 ScalerClass = TypeVar("ScalerClass")
 
 
 class DataPreprocessor:
-    def __init__(self, dataset: str):
-        self.dataset = dataset
-        self.raw_df = DataPreprocessor.load_data(self.dataset)
-        self.item2index = dict()
-        self.index2item = dict()
-        self.processed_df = pd.DataFrame()
-        self.preprocessed = False
+    def __init__(self, dataset_name: str):
+        self.dataset_name = dataset_name
+        self.raw_df: pd.DataFrame = DataPreprocessor.load_data(self.dataset_name)
+        self.processed_df: Optional[pd.DataFrame] = None
+        self.item2df: dict[str, pd.DataFrame] = dict()
+
+    def run(self) -> None:
+        self.preprocess()
+        dir_path = DATA_DIR / self.dataset_name / "processed"
+        self.processed_df.to_csv(dir_path / "processed.csv", index=False)
+        for item, df in self.item2df.items():
+            file_name = f"processed_{item}.csv"
+            df.to_csv(dir_path / file_name, index=False)
 
     @staticmethod
-    def load_data(dataset: str) -> pd.DataFrame:
-        module_path = DATA_PRE_DIR / dataset / "load_data.py"
+    def load_data(dataset_name: str) -> pd.DataFrame:
+        module_path = DATA_PRE_DIR / dataset_name / "load_data.py"
         load_data = get_object_from_module(module_path, "load_data")
         df = load_data()
         return df
 
-    def preprocess(self, **kwargs) -> pd.DataFrame:
-        module_path = DATA_PRE_DIR / self.dataset / "preprocess.py"
-        preprocess = get_object_from_module(module_path, "preprocess")
+    def preprocess(self) -> None:
+        logger.info(f"dataset: {self.dataset_name}")
         logger.info(f"# of rows [raw data]: {len(self.raw_df)}")
-        self.processed_df = preprocess(self.raw_df, **kwargs)
+
+        # 大元となるデータの前処理
+        module_path = DATA_PRE_DIR / self.dataset_name / "preprocess.py"
+        preprocess = get_object_from_module(module_path, "preprocess")
+        self.processed_df = preprocess(self.raw_df)
         logger.info(f"# of rows [processed data]: {len(self.processed_df)}")
-        self.preprocessed = True
-        return self.processed_df
+
+        # itemごとのデータに分割
+        target_cols = self.get_target_cols()
+        base_feature_cols = self.get_feature_cols(target_cols)
+        for target_col in target_cols:
+            cols = base_feature_cols + [target_col]
+            df = self.processed_df[cols]
+            item = get_item_from_label(target_col)
+            self.item2df[item] = df
 
     def get_target_cols(self, prefix: str = "UNITS") -> list[str]:
-        if self.preprocessed:
+        if self.processed_df is not None:
             target_cols = [col for col in self.processed_df.columns if prefix in col]
         else:
             raise Exception("Run preprocess before executing this method")
         return target_cols
 
     def get_feature_cols(self, target_cols: list[str]) -> list[str]:
-        if self.preprocessed:
+        if self.processed_df is not None:
             feature_cols = [col for col in self.processed_df.columns if col not in target_cols]
         else:
             raise Exception("Run preprocess before executing this method")
@@ -91,41 +107,26 @@ def get_item2avg_prices(
 
 
 def get_item2prices(
-    df: pd.DataFrame, num_of_prices: int, items: list[str], prefix: str = "PRICE"
+    df: pd.DataFrame,
+    num_of_prices: int,
+    items: list[str],
+    prefix: str = "PRICE",
+    interval: float = 0.05,
 ) -> dict[str, list[float]]:
     item2prices = dict()
     for item in items:
         price_col = prefix + "_" + item
-        price_max = df[price_col].max()
-        price_min = df[price_col].min()
-        item2prices[item] = list(np.linspace(price_min, price_max, num_of_prices))
+        price_mean = df[price_col].mean()
+        price_min = (1 - (num_of_prices // 2) * interval) * price_mean
+        price_max = (1 + (num_of_prices // 2) * interval) * price_mean
+        prices = list(np.round(np.linspace(price_min, price_max, num_of_prices), 2))
+        item2prices[item] = prices
     return item2prices
 
 
-def select_scaler(scaling_type: Optional[str] = None):
-    from sklearn import preprocessing
+if __name__ == "__main__":
+    from src.configs import read_config
 
-    if scaling_type is None:
-        return None
-    elif scaling_type == "standard":
-        return preprocessing.StandardScaler()
-    elif scaling_type == "minmax":
-        return preprocessing.MinMaxScaler()
-
-
-def inverse_transform(
-    scaler: ScalerClass, item2prices: dict[str, list[float]], X_df: pd.DataFrame
-) -> dict[str, list[float]]:
-    _X_df = X_df.copy()
-    for item, price in item2prices.items():
-        price_col = "PRICE" + "_" + item
-        _X_df[price_col] = price
-
-    item2inv_prices = dict()
-    if scaler is not None:
-        _X_inv = pd.DataFrame(scaler.inverse_transform(_X_df), columns=_X_df.columns.tolist())
-        for item in item2prices.keys():
-            price_col = "PRICE" + "_" + item
-            item2inv_prices[item] = float(_X_inv[price_col].iloc[0])
-    else:
-        return item2prices
+    config = read_config("config.yaml")["realworld"]
+    dp = DataPreprocessor(config["dataset_name"])
+    dp.run()
