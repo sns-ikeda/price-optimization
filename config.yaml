@@ -17,6 +17,7 @@ realworld:
   dataset_name: "breakfast"
   predictor_names:
     - "linear_regression"
+    - "ORT_LH"
   algo_names:
     - "solver_naive"
   num_of_prices: 5
