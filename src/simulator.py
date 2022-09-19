@@ -110,7 +110,7 @@ class Simulator:
 
             # 検証データに対する予測モデルを構築
             pm_test = PredictorMaker(
-                predictor_name=self.config.predictor_name,
+                predictor_name="ORT_LH",
                 train_df=test_df,
                 target_col=target_col,
             )
@@ -119,8 +119,8 @@ class Simulator:
             _pred_result_test[item] = pm_test.result
 
         # 後処理
-        self.pred_result_train = self.postproceess_pred_result(_pred_result_train)
-        self.pred_result_test = self.postproceess_pred_result(_pred_result_test)
+        self.pred_result_train = postproceess_pred_result(_pred_result_train)
+        self.pred_result_test = postproceess_pred_result(_pred_result_test)
         return item2predictor_train, item2predictor_test
 
     def run_realworld(self) -> None:

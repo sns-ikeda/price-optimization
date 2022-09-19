@@ -11,7 +11,7 @@ from gurobipy import GurobiError
 
 from src.optimize.processing import get_opt_prices
 from src.optimize.result import OptResult
-from src.utils.paths import DATA_DIR
+from src.utils.paths import RESULT_DIR
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class Constant:
     b: dict[tuple[str, int], float]
     g: dict[str, float]
     P: dict[tuple[str, int], float]
-    big_M: int = 100000
+    big_M: int = 10000
 
 
 class Variable:
@@ -199,7 +199,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.set_objective_function()
         self.set_constraints()
 
-    def write_lp(self, dir_path: Optional[Path] = DATA_DIR / "results" / "lpfile") -> None:
+    def write_lp(self, dir_path: Optional[Path] = RESULT_DIR / "lpfile") -> None:
         self.problem.writeLP(str(dir_path / f"{self.name}.lp"))
 
     def solve(
