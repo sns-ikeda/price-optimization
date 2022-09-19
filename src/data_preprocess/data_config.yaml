@@ -1,0 +1,16 @@
+breakfast:
+  store_num: 25027
+  category: "COLD CEREAL"
+  manufacturer: "POST FOODS"
+  target_col: "UNITS"
+  base_cols:
+      - "YEAR"
+      - "MONTH"
+      - "DAY"
+      - "PRICE"
+      - "DESCRIPTION"
+      - "UNITS"
+  master_cols:
+      - "YEAR"
+      - "MONTH"
+      - "DAY"

@@ -1,0 +1,28 @@
+artificial:
+  num_iteration: 1
+  num_of_items:
+    - 1
+    - 3
+    - 5
+  num_of_prices: 3
+  num_of_other_features: 1
+  depth_of_trees: 3
+  base_price: 1000
+  predictor_names:
+    - "linear_regression"
+  algo_names:
+    - "solver_naive"
+
+realworld:
+  dataset_name: "breakfast"
+  predictor_names:
+    - "linear_regression"
+  algo_names:
+    - "solver_naive"
+  num_of_prices: 5
+  train_sizes:
+    - 0.5
+    # - 0.6
+    # - 0.7
+    # - 0.8
+    # - 0.9
