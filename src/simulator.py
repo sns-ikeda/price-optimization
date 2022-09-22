@@ -51,23 +51,20 @@ class Simulator:
         self.eval_result = None
         self.eval_result_item = None
 
-    def run(self, iteration: int = 1) -> None:
+    def run(self) -> None:
         if self.data_type == "artificial":
-            self.run_artificial(iteration)
+            self.run_artificial()
         elif self.data_type == "realworld":
             self.run_realworld()
 
-    def run_artificial(self, iteration: int) -> None:
+    def run_artificial(self) -> None:
         """人工データによるシミュレーションを実行"""
 
         for predictor_name in self.config.predictor_names:
             model_name = predictor2model[predictor_name]
-            possible_models = ["POORT_L", "POORT_L_alpha"]
-            model_name = "POORT_L_alpha"
+            # possible_models = ["POORT_L", "POORT_L_alpha"]
+            model_name = "POORT_LH"
             for algo_name in self.config.algo_names:
-                if model_name not in possible_models:
-                    continue
-
                 results: list[OptResult] = []
                 for data_param in self.data_params:
                     for i in range(self.config.num_iteration):

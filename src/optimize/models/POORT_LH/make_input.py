@@ -2,16 +2,73 @@ from __future__ import annotations
 
 import itertools
 
+import numpy as np
 from interpretableai import iai
 from logzero import logger
 
 from src.optimize.models.POORT_LH.model import Constant, IndexSet
 from src.optimize.params import ArtificialDataParameter, RealDataParameter
 from src.optimize.processing import rename_dict, rename_feature
+from src.optimize.processing.binary_tree import depth2branchnodes, depth2leaves
+from src.optimize.processing.binary_tree import leaf2LtRt as leaf2LtRt_
 
 
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
     """人工的にモデルのパラメータを生成"""
+    # 集合を作成
+    M = list(range(params.num_of_items))
+    K = list(range(params.num_of_prices))
+    D = [max(M) + 1 + i for i in range(params.num_of_other_features)]
+    TL = {m: depth2leaves(params.depth_of_trees) for m in M}
+    TB = {m: depth2branchnodes(params.depth_of_trees) for m in M}
+    L, R = dict(), dict()
+    for m in M:
+        for t in TL[m]:
+            Lt, Rt = leaf2LtRt_(leaf_node=t)
+            L[m, t] = Lt
+            R[m, t] = Rt
+    index_set = IndexSet(D=D, M=M, K=K, TL=TL, L=L, R=R)
+
+    # 定数を作成
+    base_price = params.base_price
+    unit_price = int(base_price / len(K))
+    price_max = base_price + unit_price * max(K)
+
+    def scale_price(base_price: int, price_max: int, unit_price: int, k: int) -> float:
+        scaled_price = (base_price + unit_price * k) / price_max
+        return scaled_price
+
+    P = {
+        (m, k): round(scale_price(base_price, price_max, unit_price, k), 3)
+        for m, k in itertools.product(M, K)
+    }
+    base_seed = params.seed
+    a, b, g, epsilon, beta, beta0 = dict(), dict(), dict(), dict(), dict(), dict()
+    for m in M:
+        epsilon[m] = 0.001
+        for t in TB[m]:
+            np.random.seed(base_seed + m + t)
+            b[m, t] = round(np.random.rand(), 3) * (0.25 * (len(M) + len(D)))
+
+            np.random.seed(base_seed + m + t)
+            for mp in M + D:
+                a[m, mp, t] = round(np.random.rand(), 3)
+
+        for t in TL[m]:
+            beta0[m, t] = 0
+            for mp in M + D:
+                np.random.seed(base_seed + m + mp + t)
+                beta[m, mp, t] = 20 * round(np.random.rand(), 3) - 10
+    for d in D:
+        np.random.seed(base_seed + d)
+        g[d] = round(np.random.rand(), 3)
+    constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P)
+    logger.info(f"beta: {beta}")
+    logger.info(f"beta0: {beta0}")
+    logger.info(f"g: {g}")
+    logger.info(f"a: {a}")
+    logger.info(f"b: {b}")
+    return index_set, constant
 
 
 def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]:
@@ -23,7 +80,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         P[m, k] = params.item2prices[m][k]
 
     TL, L, R = dict(), dict(), dict()
-    beta, beta0, epsilon, epsilon_max, a, b = dict(), dict(), dict(), dict(), dict(), dict()
+    beta, beta0, epsilon, a, b = dict(), dict(), dict(), dict(), dict()
     for m in M:
         predictor = params.item2predictor[m]
         _beta = get_beta(model=predictor.model, item=m)
