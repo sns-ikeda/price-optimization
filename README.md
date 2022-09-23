@@ -9,7 +9,7 @@
 - poetryにて実行環境を構築するため，下記コマンドを実行  
 （poetryがインストールされていない場合は，pipにてインストールされる）
 ```shell
-$ make environment
+$ make env
 ```
 - 最適決定木のライブラリ(interpretableai)を初めて利用する場合は，下記コマンドを実行  
 ```shell
@@ -20,11 +20,9 @@ $ make iai
 ## How to Run
 ### preparation
 - 以下のyamlファイルにてシミュレーションの設定を行う
-    - 実験の設定：`src/config_simulation.yaml`
-    - 使用するデータの設定：`data/config_data.yaml`
-    - 最適化モデルの設定：`src/optimize/config_optimize.yaml`
-    - アルゴリズムの設定：`src/optimize/algorithms/config_algorithm.yaml`
-    - 予測モデルの設定：`src/predict/config_predict.yaml`
+    - 実験の設定：`src/config.yaml`
+    - データ処理の設定：`src/data_preprocess/data_config.yaml`
+    - アルゴリズムの設定：`src/optimize/algorithms/algo_config.yaml`
 ### execution
 - 下記コマンドにてシミュレーションを実行
 
