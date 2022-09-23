@@ -10,12 +10,15 @@ from src.data_preprocess.breakfast.config import config
 def filter_df(
     df: pd.DataFrame,
     category: Optional[str] = None,
+    sub_category: Optional[str] = None,
     store_num: Optional[int] = None,
     manufacturer: Optional[str] = None,
 ):
     df_ = df.copy()
     if category is not None:
         df_ = df_.query("CATEGORY == @category").reset_index(drop=True)
+    if sub_category is not None:
+        df_ = df_.query("SUB_CATEGORY == @sub_category").reset_index(drop=True)
     if store_num is not None:
         df_ = df_.query("STORE_NUM == @store_num").reset_index(drop=True)
     if manufacturer is not None:
@@ -48,6 +51,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     filtered_df = filter_df(
         df=_df,
         category=config.category,
+        sub_category=config.sub_category,
         store_num=config.store_num,
         manufacturer=config.manufacturer,
     )

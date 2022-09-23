@@ -1,7 +1,8 @@
 breakfast:
   store_num: 25027
   category: "COLD CEREAL"
-  manufacturer: "POST FOODS"
+  sub_category: "KIDS CEREAL"
+  manufacturer: "KELLOGG"
   target_col: "UNITS"
   base_cols:
       - "YEAR"

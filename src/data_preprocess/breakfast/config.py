@@ -13,6 +13,7 @@ class Config:
     master_cols: list[str]
     store_num: Optional[int] = None
     category: Optional[str] = None
+    sub_category: Optional[str] = None
     manufacturer: Optional[str] = None
 
 
