@@ -1,8 +1,8 @@
 solver_naive:
-  solver: "Cbc"
+  solver: "gurobi"
   TimeLimit: 300
 solver_heuristics:
-  solver: "Cbc"
+  solver: "gurobi"
   NoRelHeurTime: 100
   MIPFocus: 1
   TimeLimit: 300
