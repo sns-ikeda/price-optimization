@@ -62,8 +62,6 @@ class Simulator:
 
         for predictor_name in self.config.predictor_names:
             model_name = predictor2model[predictor_name]
-            # possible_models = ["POORT_L", "POORT_L_alpha"]
-            model_name = "POORT_LH"
             for algo_name in self.config.algo_names:
                 results: list[OptResult] = []
                 for data_param in self.data_params:
