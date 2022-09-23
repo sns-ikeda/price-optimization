@@ -17,10 +17,10 @@ def plot(
     plt.scatter(y, y_pred, color="blue")  # 横軸に予測値，縦軸に実測値
     if suffix is None:
         plt.title(f"{predictor_name}: {target_item}")  # 図のタイトル
-        save_name = f"{target_item}.png"
+        save_name = f"{predictor_name}_{target_item}.png"
     else:
         plt.title(f"{predictor_name}: {target_item} [{suffix}]")  # 図のタイトル
-        save_name = f"{target_item}_{suffix}.png"
+        save_name = f"{predictor_name}_{target_item}_{suffix}.png"
 
     plt.xlabel("actual units")  # x軸のラベル
     plt.ylabel("predicted units")  # y軸のラベル
