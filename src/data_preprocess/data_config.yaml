@@ -1,8 +1,8 @@
 breakfast:
-  store_num: 25027
-  category: "COLD CEREAL"
-  sub_category: "KIDS CEREAL"
-  manufacturer: "KELLOGG"
+  store_num: 2277
+  category: "BAG SNACKS"
+  sub_category: "PRETZELS"
+  manufacturer: "FRITO LAY"
   target_col: "UNITS"
   base_cols:
       - "YEAR"
