@@ -18,7 +18,8 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     # 集合を作成
     M = list(range(params.num_of_items))
     K = list(range(params.num_of_prices))
-    D = [max(M) + 1 + i for i in range(params.num_of_other_features)]
+    _D = [max(M) + 1 + i for i in range(params.num_of_other_features)]
+    D = {m: _D for m in M}
     TL = {m: depth2leaves(params.depth_of_trees) for m in M}
     TB = {m: depth2branchnodes(params.depth_of_trees) for m in M}
     L, R = dict(), dict()
@@ -48,20 +49,20 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
         epsilon[m] = 0.001
         for t in TB[m]:
             np.random.seed(base_seed + m + t)
-            b[m, t] = round(np.random.rand(), 3) * (0.25 * (len(M) + len(D)))
+            b[m, t] = round(np.random.rand(), 3) * (0.25 * (len(M) + len(D[m])))
 
-            np.random.seed(base_seed + m + t)
-            for mp in M + D:
+            for mp in M + D[m]:
+                np.random.seed(base_seed + mp + t)
                 a[m, mp, t] = round(np.random.rand(), 3)
 
         for t in TL[m]:
             beta0[m, t] = 0
-            for mp in M + D:
+            for mp in M + D[m]:
                 np.random.seed(base_seed + m + mp + t)
                 beta[m, mp, t] = 20 * round(np.random.rand(), 3) - 10
-    for d in D:
-        np.random.seed(base_seed + d)
-        g[d] = round(np.random.rand(), 3)
+        for d in D[m]:
+            np.random.seed(base_seed + d)
+            g[m, d] = round(np.random.rand(), 3)
     constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P)
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")

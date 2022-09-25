@@ -16,7 +16,7 @@ from src.utils.paths import RESULT_DIR
 
 @dataclass(frozen=True)
 class IndexSet:
-    D: list[str]
+    D: dict[str, list[str]]
     M: list[str]
     K: list[int]
     TL: dict[str, list[int]]
@@ -31,7 +31,7 @@ class Constant:
     epsilon: dict[str, float]
     a: dict[tuple[str, str, int], float]
     b: dict[tuple[str, int], float]
-    g: dict[str, float]
+    g: dict[tuple[str, str], float]
     P: dict[tuple[str, int], float]
     big_M: int = 10000
 
@@ -99,8 +99,8 @@ class ConstraintsMixin:
                     self.constant.beta.get((m, mp, t), 0) * self.variable.p[mp]
                     for mp in self.index_set.M
                 ) - pulp.lpSum(
-                    self.constant.beta.get((m, d, t), 0) * self.constant.g[d]
-                    for d in self.index_set.D
+                    self.constant.beta.get((m, d, t), 0) * self.constant.g[m, d]
+                    for d in self.index_set.D[m]
                 ) - self.constant.beta0[
                     m, t
                 ] >= -self.constant.big_M * (
@@ -111,8 +111,8 @@ class ConstraintsMixin:
                     self.constant.beta.get((m, mp, t), 0) * self.variable.p[mp]
                     for mp in self.index_set.M
                 ) - pulp.lpSum(
-                    self.constant.beta.get((m, d, t), 0) * self.constant.g[d]
-                    for d in self.index_set.D
+                    self.constant.beta.get((m, d, t), 0) * self.constant.g[m, d]
+                    for d in self.index_set.D[m]
                 ) - self.constant.beta0[
                     m, t
                 ] <= self.constant.big_M * (
@@ -129,8 +129,8 @@ class ConstraintsMixin:
                             for mp in self.index_set.M
                         )
                         + pulp.lpSum(
-                            self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
-                            for d in self.index_set.D
+                            self.constant.a.get((m, d, tp), 0) * self.constant.g[m, d]
+                            for d in self.index_set.D[m]
                         )
                         >= self.constant.b[m, tp]
                         + self.constant.big_M * self.variable.z[m, t]
@@ -143,8 +143,8 @@ class ConstraintsMixin:
                             for mp in self.index_set.M
                         )
                         + pulp.lpSum(
-                            self.constant.a.get((m, d, tp), 0) * self.constant.g[d]
-                            for d in self.index_set.D
+                            self.constant.a.get((m, d, tp), 0) * self.constant.g[m, d]
+                            for d in self.index_set.D[m]
                         )
                         + self.constant.epsilon
                         <= self.constant.b[m, tp]
