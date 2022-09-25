@@ -2,7 +2,7 @@ breakfast:
   store_num: 2277
   category: "BAG SNACKS"
   sub_category: "PRETZELS"
-  manufacturer: "FRITO LAY"
+  manufacturer: "SNYDER S"
   target_col: "UNITS"
   base_cols:
       - "YEAR"
