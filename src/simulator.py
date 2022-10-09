@@ -145,7 +145,7 @@ class Simulator:
 
         for _, row in test_df.iterrows():
             row_df = row.to_frame().T
-            g=calc_g(
+            g = calc_g(
                 df=row_df,
                 item2predictor=item2predictor_train,
             )
@@ -153,7 +153,7 @@ class Simulator:
                 num_of_prices=self.config.num_of_prices,
                 item2predictor=item2predictor_train,
                 item2prices=item2prices,
-                g=g
+                g=g,
             )
             # 価格最適化しない場合の結果
             actual_sales_item = calc_actual_sales(row_df, self.items)

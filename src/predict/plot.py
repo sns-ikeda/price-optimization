@@ -3,6 +3,7 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 
 def plot(
@@ -24,8 +25,8 @@ def plot(
 
     plt.xlabel("actual units")  # x軸のラベル
     plt.ylabel("predicted units")  # y軸のラベル
-    plt.xlim(0)
-    plt.ylim(0)
+    plt.xlim(0, max(max(np.array(y))[0], max(y_pred)) * 1.1)
+    plt.ylim(0, max(max(np.array(y))[0], max(y_pred)) * 1.1)
     plt.grid()  # グリッド線を表示
     plt.savefig(dir_path / save_name, format="png", dpi=300)
     plt.clf()

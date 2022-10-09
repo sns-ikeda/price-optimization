@@ -139,12 +139,12 @@ def main():
             # 価格の評価結果を格納
             model_name = predictor2model[predictor_name]
             _eval_detail = {
-                'actual_sales': [],
-                'pred_sales_at_actual_price': [],
-                'pred_sales_at_average_price': [],
-                'pred_sales_at_opt_price': [],
-                'theoretical_sales': [],
-                "opt_prices": []
+                "actual_sales": [],
+                "pred_sales_at_actual_price": [],
+                "pred_sales_at_average_price": [],
+                "pred_sales_at_opt_price": [],
+                "theoretical_sales": [],
+                "opt_prices": [],
             }
             for eval_result in simulator.eval_results:
                 for k, v in eval_result.items():
