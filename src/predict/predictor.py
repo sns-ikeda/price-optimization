@@ -114,12 +114,15 @@ if __name__ == "__main__":
 
     from src.configs import read_config
     from src.data_preprocess.preprocessor import DataPreprocessor, get_label_from_item
+    from src.utils.dict_converter import dict2json
+    from src.utils.paths import RESULT_DIR
 
     config = read_config("config.yaml")["realworld"]
 
     dp = DataPreprocessor(config["dataset_name"])
     dp.run()
 
+    pred_result_train, pred_result_test = dict(), dict()
     for predictor_name in config["predictor_names"]:
         for item, df in dp.item2df.items():
             for train_size in config["train_sizes"]:
@@ -138,6 +141,11 @@ if __name__ == "__main__":
                 )
                 pm_train.run(train_or_test="train", suffix=str(train_size))
 
+                # 学習データへの学習結果を格納
+                pred_result_train.setdefault(train_size, dict())[
+                    predictor_name
+                ] = pm_train.result
+
                 # 検証データに対する予測モデルを構築
                 pm_test = PredictorMaker(
                     predictor_name=predictor_name,
@@ -145,3 +153,18 @@ if __name__ == "__main__":
                     target_col=target_col,
                 )
                 pm_test.run(train_or_test="test", suffix=str(train_size))
+
+                # テストデータへの学習結果を格納
+                pred_result_test.setdefault(train_size, dict())[
+                    predictor_name
+                ] = pm_test.result
+
+    # json形式で結果を出力
+    dict2json(
+        target_dict=pred_result_test,
+        save_path=RESULT_DIR / "realworld" / "predict" / "pred_result_test.json",
+    )
+    dict2json(
+        target_dict=pred_result_train,
+        save_path=RESULT_DIR / "realworld" / "predict" / "pred_result_train.json",
+    )

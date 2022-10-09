@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-from collections import defaultdict
 
 import pandas as pd
 
@@ -28,7 +27,7 @@ class Evaluator:
         self.target_cols = get_labels_from_items(items)
         self.feature_cols = [col for col in self.test_df.columns if col not in self.target_cols]
         self.result = dict()
-        self.result_item = defaultdict(lambda: defaultdict(dict))
+        self.result_item = dict()
         self.result_df = self.make_result_df()
 
     def run(self) -> None:
@@ -66,23 +65,23 @@ class Evaluator:
             avg_price = X_avg[price_col].values
 
             # 売上の実績値
-            self.result_item["actual_sales"][item] = round(
+            self.result_item.setdefault("actual_sales", dict())[item] = round(
                 float(sum(y_test.values * actual_price)), 1
             )
             # 実際価格での予測売上
-            self.result_item["pred_sales_at_actual_price"][item] = round(
+            self.result_item.setdefault("pred_sales_at_actual_price", dict())[item] = round(
                 float(sum(y_pred.flatten() * actual_price)), 1
             )
             # 平均価格での予測売上
-            self.result_item["pred_sales_at_average_price"][item] = round(
+            self.result_item.setdefault("pred_sales_at_average_price", dict())[item] = round(
                 float(sum(y_pred_avg.flatten() * avg_price)), 1
             )
             # 最適価格での予測売上
-            self.result_item["pred_sales_at_opt_price"][item] = round(
+            self.result_item.setdefault("pred_sales_at_opt_price", dict())[item] = round(
                 float(sum(y_pred_opt.flatten() * opt_price)), 1
             )
             # 価格候補
-            self.result_item["price_candidates"][item] = self.item2prices[item]
+            self.result_item.setdefault("price_candidates", dict())[item] = self.item2prices[item]
         # 理論値
         if len(self.target_cols) <= 3 and len(list(self.item2prices.values())[0]) <= 9:
             theoretical_sales_item, theoretical_opt_prices = self.calc_theoretical_values()
@@ -96,6 +95,7 @@ class Evaluator:
                 self.result[metric] = float(sum(result_item.values()))
             except TypeError:
                 pass
+        self.result_item["opt_prices"] = self.opt_prices
 
     def make_X(self, item_prices: dict[str, float]) -> pd.DataFrame:
         X = self.test_df[self.feature_cols].copy()

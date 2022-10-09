@@ -26,7 +26,7 @@ class Constant:
     beta: dict[tuple[str, str], float]
     beta0: dict[str, float]
     phi: dict[tuple[str, str, int], float]
-    g: dict[str, float]
+    g: dict[tuple[str, str], float]
     P: dict[tuple[str, int], float]
     big_M: int = 1000000
 
@@ -91,7 +91,7 @@ class ConstraintsMixin:
                         self.constant.beta[m, mp] * self.variable.p[mp] for mp in self.index_set.M
                     )
                     + pulp.lpSum(
-                        self.constant.beta[m, d] * self.constant.g[d] for d in self.index_set.D[m]
+                        self.constant.beta[m, d] * self.constant.g[m, d] for d in self.index_set.D[m]
                     )
                     + self.constant.beta0[m]
                 )
@@ -101,7 +101,7 @@ class ConstraintsMixin:
                     self.variable.q[m]
                     == self.constant.beta[m, m] * self.variable.p[m]
                     + pulp.lpSum(
-                        self.constant.beta[m, d] * self.constant.g[d] for d in self.index_set.D[m]
+                        self.constant.beta[m, d] * self.constant.g[m, d] for d in self.index_set.D[m]
                     )
                     + self.constant.beta0[m]
                 )

@@ -64,6 +64,7 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
             np.random.seed(base_seed + d)
             g[m, d] = round(np.random.rand(), 3)
     constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P)
+    logger.info(f"D: {D}")
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")
     logger.info(f"g: {g}")
@@ -99,9 +100,13 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         R.update(_R)
 
     g = params.g
-    D = list(g.keys())
+    D = {m: [] for m in M}
+    for k in g.keys():
+        m, d = k
+        D[m].append(d)
     index_set = IndexSet(D=D, M=M, K=K, TL=TL, L=L, R=R)
     constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P)
+    logger.info(f"D: {D}")
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")
     logger.info(f"g: {g}")

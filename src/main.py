@@ -104,7 +104,7 @@ def main():
 
     elif data_type == "realworld":
         pred_result_train, pred_result_test = dict(), dict()
-        eval_result, eval_result_detail = dict(), dict()
+        eval_summary, eval_detail = dict(), dict()
 
         dataset_name = _config["dataset_name"]
         predictor_names = _config["predictor_names"]
@@ -137,18 +137,31 @@ def main():
             ] = simulator.pred_result_test
 
             # 価格の評価結果を格納
-            opt_prices = {"opt_prices": simulator.opt_result.opt_prices}
-            try:
-                q_train = {"q_train": simulator.opt_result.variable.q}
-            except AttributeError:
-                q_train = {"q_train": None}
             model_name = predictor2model[predictor_name]
-            eval_result.setdefault(train_size, dict()).setdefault(model_name, dict())[
+            _eval_detail = {
+                'actual_sales': [],
+                'pred_sales_at_actual_price': [],
+                'pred_sales_at_average_price': [],
+                'pred_sales_at_opt_price': [],
+                'theoretical_sales': [],
+                "opt_prices": []
+            }
+            for eval_result in simulator.eval_results:
+                for k, v in eval_result.items():
+                    _eval_detail[k].append(v)
+
+            _eval_summary = dict()
+            for k, v in _eval_detail.items():
+                if k == "opt_prices":
+                    continue
+                _eval_summary[k] = sum(v)
+
+            eval_summary.setdefault(train_size, dict()).setdefault(model_name, dict())[
                 algo_name
-            ] = simulator.eval_result
-            eval_result_detail.setdefault(train_size, dict()).setdefault(model_name, dict())[
+            ] = _eval_summary
+            eval_detail.setdefault(train_size, dict()).setdefault(model_name, dict())[
                 algo_name
-            ] = dict(**simulator.eval_result_item, **opt_prices, **q_train)
+            ] = _eval_detail
 
         # json形式で結果を出力
         dict2json(
@@ -160,12 +173,12 @@ def main():
             save_path=RESULT_DIR / data_type / "predict" / "pred_result_train.json",
         )
         dict2json(
-            target_dict=eval_result,
-            save_path=RESULT_DIR / data_type / "optimize" / "eval_result.json",
+            target_dict=eval_summary,
+            save_path=RESULT_DIR / data_type / "optimize" / "eval_summary.json",
         )
         dict2json(
-            target_dict=eval_result_detail,
-            save_path=RESULT_DIR / data_type / "optimize" / "eval_result_detail.json",
+            target_dict=eval_detail,
+            save_path=RESULT_DIR / data_type / "optimize" / "eval_detail.json",
         )
 
 

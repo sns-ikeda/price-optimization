@@ -67,5 +67,12 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     ]
     df[config.master_cols] = df[config.master_cols].astype(int)
     df = df.dropna(how="any", axis=0).sort_values(by=config.master_cols).reset_index(drop=True)
+
+    # 自己回帰特徴量追加
+    target_cols = [col for col in df.columns if "UNITS" in col]
+    for target_col in target_cols:
+        item = target_col.split("_")[-1]
+        df["S_U_" + item] = df[target_col].shift()
+    df = df.dropna(how="any", axis=0)
     df = df.drop(columns=config.master_cols)
     return df

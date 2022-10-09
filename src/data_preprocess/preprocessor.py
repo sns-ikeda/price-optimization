@@ -46,11 +46,20 @@ class DataPreprocessor:
 
         # itemごとのデータに分割
         target_cols = self.get_target_cols()
-        base_feature_cols = self.get_feature_cols(target_cols)
+        all_feature_cols = self.get_feature_cols(target_cols)
+        base_cols = self.get_base_cols()
+        price_cols = self.get_price_cols()
+
+        logger.info(f"all_feature_cols: {all_feature_cols}")
+        logger.info(f"price_cols: {price_cols}")
+        logger.info(f"target_cols: {target_cols}")
+        logger.info(f"base_cols: {base_cols}")
         for target_col in target_cols:
-            cols = base_feature_cols + [target_col]
-            df = self.processed_df[cols]
             item = get_item_from_label(target_col)
+            other_cols = list(set(all_feature_cols) - set(price_cols))
+            feature_cols = base_cols + price_cols + [col for col in other_cols if item in col]
+            cols = feature_cols + [target_col]
+            df = self.processed_df[cols]
             self.item2df[item] = df
 
     def get_target_cols(self, prefix: str = "UNITS") -> list[str]:
@@ -66,6 +75,20 @@ class DataPreprocessor:
         else:
             raise Exception("Run preprocess before executing this method")
         return feature_cols
+
+    def get_price_cols(self) -> list[str]:
+        if self.processed_df is not None:
+            price_cols = [col for col in self.processed_df.columns if "PRICE" in col]
+        else:
+            raise Exception("Run preprocess before executing this method")
+        return price_cols
+
+    def get_base_cols(self) -> list[str]:
+        if self.processed_df is not None:
+            base_cols = [col for col in self.processed_df.columns if len(col.split("_")) == 1]
+        else:
+            raise Exception("Run preprocess before executing this method")
+        return base_cols
 
 
 def get_item_from_label(target_col: str) -> str:

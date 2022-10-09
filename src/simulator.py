@@ -39,6 +39,8 @@ class Simulator:
         elif data_type == "artificial":
             self.config = artificial_config
 
+        self.dp = None
+        self.items = []
         self.artificial_results_dict: dict[tuple[str, str], list[OptResult]] = dict()
         self.optimizer: Optional[Optimizer] = None
         self.evaluator: Optional[Evaluator] = None
@@ -47,9 +49,9 @@ class Simulator:
         )
         self.pred_result_train = dict()
         self.pred_result_test = dict()
-        self.opt_result = None
-        self.eval_result = None
-        self.eval_result_item = None
+        self.opt_results = []
+        self.eval_results = []
+        self.eval_results_item = []
 
     def run(self) -> None:
         if self.data_type == "artificial":
@@ -139,46 +141,58 @@ class Simulator:
             items=self.items,
         )
         logger.info(f"price candidates: {item2prices}")
-        data_param = RealDataParameter(
-            num_of_prices=self.config.num_of_prices,
-            item2predictor=item2predictor_train,
-            item2prices=item2prices,
-            g=calc_g(
-                train_df=train_df.tail(1),
-                item2predictor=item2predictor_train,
-            ),
-        )
-        # 価格最適化しない場合の結果
-        actual_sales_item = calc_actual_sales(train_df.tail(1), self.items)
-        actual_total_sales = sum(actual_sales_item.values())
-        logger.info(f"actual_total_sales: {actual_total_sales}")
-
-        # 価格最適化を実行
-        model_name = predictor2model[self.config.predictor_name]
-        self.optimizer = Optimizer(
-            model_name=model_name, algo_name=self.config.algo_name, data_param=data_param
-        )
-        self.optimizer.run(**ALGO_CONFIG[self.config.algo_name])
-        self.opt_result = self.optimizer.result
-
-        # 計算した最適価格の評価
         avg_prices = get_item2avg_prices(df=train_df, items=self.items)
-        if self.optimizer.result.opt_prices:
-            opt_prices = self.optimizer.result.opt_prices
-            logger.info(f"opt_prices: {opt_prices}")
-            logger.info(f"q: {self.optimizer.result.variable.q}")
-        else:
-            raise Exception("couldn't get optimal prices")
-        self.evaluator = Evaluator(
-            test_df=test_df,
-            item2predictor=item2predictor_test,
-            opt_prices=opt_prices,
-            avg_prices=avg_prices,
-            item2prices=item2prices,
-        )
-        self.evaluator.run()
-        self.eval_result = self.evaluator.result
-        self.eval_result_item = self.evaluator.result_item
+
+        for _, row in test_df.iterrows():
+            row_df = row.to_frame().T
+            g=calc_g(
+                df=row_df,
+                item2predictor=item2predictor_train,
+            )
+            data_param = RealDataParameter(
+                num_of_prices=self.config.num_of_prices,
+                item2predictor=item2predictor_train,
+                item2prices=item2prices,
+                g=g
+            )
+            # 価格最適化しない場合の結果
+            actual_sales_item = calc_actual_sales(row_df, self.items)
+            actual_total_sales = sum(actual_sales_item.values())
+            logger.info(f"actual_total_sales: {actual_total_sales}")
+
+            # 価格最適化を実行
+            model_name = predictor2model[self.config.predictor_name]
+            self.optimizer = Optimizer(
+                model_name=model_name, algo_name=self.config.algo_name, data_param=data_param
+            )
+            self.optimizer.run(**ALGO_CONFIG[self.config.algo_name])
+            self.opt_results.append(self.optimizer.result)
+
+            # 計算した最適価格の評価
+            if self.optimizer.result.opt_prices:
+                opt_prices = self.optimizer.result.opt_prices
+                logger.info(f"opt_prices: {opt_prices}")
+                logger.info(f"q: {self.optimizer.result.variable.q}")
+            else:
+                raise Exception("couldn't get optimal prices")
+            if g:
+                test_df_ = row_df
+            else:
+                test_df_ = test_df
+            self.evaluator = Evaluator(
+                test_df=test_df_,
+                item2predictor=item2predictor_test,
+                opt_prices=opt_prices,
+                avg_prices=avg_prices,
+                item2prices=item2prices,
+            )
+            self.evaluator.run()
+            self.eval_results.append(self.evaluator.result)
+            self.eval_results_item.append(self.evaluator.result_item)
+            if g:
+                pass
+            else:
+                break
 
 
 def postproceess_pred_result(target_dict: dict[str, dict[str, dict[str, float]]]):

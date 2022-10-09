@@ -19,12 +19,15 @@ def train(
     **kwargs,
 ) -> Predictor:
     feature_cols = X.columns.tolist()
+    logger.info(f"feature_cols: {feature_cols}")
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
-        params_ = {"max_depth": 2, "cp": 0.001}
+        params_ = {"max_depth": 1, "cp": 0.001}
     else:
         params_ = copy.deepcopy(params)
+    if suffix is not None:
+        params_ = {"max_depth": 2, "cp": 0.001} if "test_train" in suffix else params_
     # 学習
     logger.info("fitting by ORT_LH...")
     model = iai.OptimalTreeRegressor(
@@ -33,8 +36,10 @@ def train(
         normalize_X=False,
         hyperplane_config={"sparsity": "all"},
         **params_,
-        # regression_sparsity="all",
-        # regression_lambda=0.01,
+        regression_features="all",
+        regression_weighted_betas=True,
+        regression_sparsity="all",
+        regression_lambda=0.01,
     )
     model.fit(X, y[target_col].values)
     if suffix is not None:

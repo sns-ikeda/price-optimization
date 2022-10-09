@@ -17,6 +17,7 @@ def train(
     X: pd.DataFrame, y: pd.DataFrame, params: Optional[dict[str, float]] = None, **kwargs
 ) -> Predictor:
     feature_cols = X.columns.tolist()
+    logger.info(f"feature_cols: {feature_cols}")
     target_col = y.columns[0]
     if params is None or len(params) == 0:
         params_ = {"alpha": 0}

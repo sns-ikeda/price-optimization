@@ -49,7 +49,7 @@ class RealDataParameter:
     seed: int = 0
     item2predictor: dict[str, Predictor] = field(default_factory=dict)
     data_type: str = "realworld"
-    g: dict[str, float] = field(default_factory=dict)
+    g: dict[tuple[str, str], float] = field(default_factory=dict)
 
 
 def make_data_params(
@@ -70,11 +70,18 @@ def make_data_params(
     return data_params
 
 
-def calc_g(train_df: pd.DataFrame, item2predictor: dict[str, Predictor]) -> dict[str, float]:
-    df = train_df.copy().head(1)
-    X = df.drop(columns=[predictor.target_col for predictor in item2predictor.values()])
-    feature_cols = X.columns.tolist()
+def calc_g(df: pd.DataFrame, item2predictor: dict[str, Predictor]) -> dict[tuple[str, str], float]:
     price_cols = ["PRICE" + "_" + item for item in item2predictor.keys()]
-    other_feature_cols = [col for col in feature_cols if col not in price_cols]
-    g = {col: float(df[col]) for col in other_feature_cols}
+    g = dict()
+    for item, predictor in item2predictor.items():
+        if len(df) == 1:
+            X = df[list(predictor.feature_cols)]
+        else:
+            X = df[list(predictor.feature_cols)].head(1)
+        print("item", item)
+        print("predictor.feature_cols", list(predictor.feature_cols))
+        print("X", X)
+        other_feature_cols = [col for col in list(predictor.feature_cols) if col not in price_cols]
+        print("other_feature", other_feature_cols)
+        g.update({(item, col): float(X[col]) for col in other_feature_cols})
     return g

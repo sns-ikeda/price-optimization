@@ -111,7 +111,7 @@ if __name__ == "__main__":
                 item2predictor=item2predictor,
                 item2prices=item2prices,
                 g=calc_g(
-                    train_df=train_df.tail(1),
+                    df=test_df,
                     item2predictor=item2predictor,
                 ),
             )

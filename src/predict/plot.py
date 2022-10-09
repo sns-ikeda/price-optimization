@@ -24,6 +24,8 @@ def plot(
 
     plt.xlabel("actual units")  # x軸のラベル
     plt.ylabel("predicted units")  # y軸のラベル
+    plt.xlim(0)
+    plt.ylim(0)
     plt.grid()  # グリッド線を表示
     plt.savefig(dir_path / save_name, format="png", dpi=300)
     plt.clf()
