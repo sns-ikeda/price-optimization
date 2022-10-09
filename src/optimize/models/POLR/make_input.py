@@ -29,7 +29,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         predictor = params.item2predictor[m]
         feature_cols = predictor.feature_cols
         model = predictor.model
-        _coef_dict = {feature_cols[i]: coef for i, coef in enumerate(model.coef_)}
+        _coef_dict = {feature_cols[i]: coef for i, coef in enumerate(model.coef_[0])}
         coef_dict = rename_dict(_coef_dict)
         for col, coef in coef_dict.items():
             beta[m, col] = coef
