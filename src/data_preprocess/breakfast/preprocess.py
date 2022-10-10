@@ -47,6 +47,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
         ],
         axis=1,
     )
+    _df["DESCRIPTION"] = _df["DESCRIPTION"].apply(lambda x: x.replace("/", " "))
     # 対象の店舗・商品カテゴリに絞ってデータを抽出
     filtered_df = filter_df(
         df=_df,
