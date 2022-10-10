@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -25,9 +25,9 @@ class IndexSet:
 class Constant:
     beta: dict[tuple[str, str], float]
     beta0: dict[str, float]
-    phi: dict[tuple[str, str, int], float]
     g: dict[tuple[str, str], float]
     P: dict[tuple[str, int], float]
+    prices: list[float] = field(default_factory=list)
     big_M: int = 1000000
 
 

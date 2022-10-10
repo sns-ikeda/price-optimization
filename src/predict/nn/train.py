@@ -21,7 +21,7 @@ def train(
     target_col = y.columns[0]
     if params is None or len(params) == 0:
         params_ = {
-            "hidden_layer_sizes": (len(X), ),
+            "hidden_layer_sizes": (len(X),),
             # "hidden_layer_sizes": (10, ),
             "max_iter": 30000,
             # "learning_rate_init": 0.001,

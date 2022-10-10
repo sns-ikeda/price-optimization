@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 
+import numpy as np
 from logzero import logger
 
 from src.optimize.models.POLR.model import Constant, IndexSet
@@ -11,7 +12,36 @@ from src.optimize.processing import rename_dict
 
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
     """人工的にモデルのパラメータを生成"""
-    index_set, constant = None, None
+    # 集合を作成
+    M = [str(m) for m in range(params.num_of_items)]
+    K = list(range(params.num_of_prices))
+    _D = [len(M) + i for i in range(params.num_of_other_features)]
+    D = {m: _D for m in M}
+    index_set = IndexSet(D=D, M=M, K=K)
+    prices = list(np.linspace(params.price_min, params.price_max, params.num_of_items))
+    # 定数を作成
+    P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
+    base_seed = params.seed
+    g, beta, beta0 = dict(), dict(), dict()
+    quantity_min = params.base_quantity * 0.8
+    quantity_max = params.base_quantity * 1.2
+    coef = 3
+    for m in M:
+        beta0[m] = int((quantity_max - quantity_min) * np.random.rand() + quantity_min)
+        for mp in M + D[m]:
+            np.random.seed(base_seed + int(m) + int(mp))
+            if m == mp:
+                beta[m, mp] = -(coef * len(M) * round(np.random.rand(), 2))
+            else:
+                beta[m, mp] = coef * round(np.random.rand(), 2)
+        for d in D[m]:
+            np.random.seed(base_seed + d)
+            g[m, d] = round(np.random.rand(), 3)
+    constant = Constant(beta=beta, beta0=beta0, g=g, P=P, prices=prices)
+    logger.info(f"D: {D}")
+    logger.info(f"beta: {beta}")
+    logger.info(f"beta0: {beta0}")
+    logger.info(f"g: {g}")
     return index_set, constant
 
 
@@ -37,7 +67,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         D[m] = [col for col in coef_dict.keys() if col not in M]
     g = params.g
     index_set = IndexSet(D=D, M=M, K=K)
-    constant = Constant(beta=beta, beta0=beta0, phi=phi, g=g, P=P)
+    constant = Constant(beta=beta, beta0=beta0, g=g, P=P)
     logger.info(f"D: {D}")
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")

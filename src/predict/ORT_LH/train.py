@@ -23,7 +23,7 @@ def train(
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
-        params_ = {"max_depth": 1, "cp": 0.001}
+        params_ = {"max_depth": 2, "cp": 0.001}
     else:
         params_ = copy.deepcopy(params)
     if suffix is not None:
@@ -43,9 +43,9 @@ def train(
     )
     model.fit(X, y[target_col].values)
     if suffix is not None:
-        save_path = RESULT_DIR / "realworld" / "predict" / f"ORT_{item}_{suffix}.html"
+        save_path = RESULT_DIR / "synthetic" / "predict" / f"ORT_{item}_{suffix}.html"
     else:
-        save_path = RESULT_DIR / "realworld" / "predict" / f"ORT_{item}.html"
+        save_path = RESULT_DIR / "synthetic" / "predict" / f"ORT_{item}.html"
     model.write_html(str(save_path))
     predictor = Predictor(model=model, feature_cols=feature_cols, target_col=target_col)
     return predictor

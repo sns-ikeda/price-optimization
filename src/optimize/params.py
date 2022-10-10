@@ -26,6 +26,9 @@ class ArtificialDataParameter:
     num_of_other_features: int
     depth_of_trees: int
     base_price: int
+    price_min: int = 4
+    price_max: int = 6
+    base_quantity: int = 300
     seed: int = 0
     data_type: str = "artificial"
 

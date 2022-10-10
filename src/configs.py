@@ -26,7 +26,7 @@ class RealworldConfig:
 
 @dataclass(frozen=True)
 class ArtificialConfig:
-    num_iteration: str
+    num_iteration: int
     num_of_items: list[int]
     num_of_prices: int
     num_of_other_features: int

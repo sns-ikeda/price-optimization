@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 
+import numpy as np
 import pandas as pd
 
 from src.data_preprocess.preprocessor import get_item_from_label, get_labels_from_items
@@ -14,13 +15,12 @@ class Evaluator:
         test_df: pd.DataFrame,
         item2predictor: dict[str, Predictor],
         opt_prices: dict[str, float],
-        avg_prices: dict[str, float],
         item2prices: dict[str, list[float]],
     ) -> None:
         self.test_df = test_df
         self.item2predictor = item2predictor
         self.opt_prices = opt_prices
-        self.avg_prices = avg_prices
+        self.avg_prices = {item: np.mean(prices) for item, prices in item2prices.items()}
         self.item2prices = item2prices
 
         items = list(self.item2predictor.keys())
@@ -82,11 +82,11 @@ class Evaluator:
             )
             # 価格候補
             self.result_item.setdefault("price_candidates", dict())[item] = self.item2prices[item]
-        # 理論値
-        if len(self.target_cols) <= 3 and len(list(self.item2prices.values())[0]) <= 9:
-            theoretical_sales_item, theoretical_opt_prices = self.calc_theoretical_values()
-            self.result_item["theoretical_sales"] = theoretical_sales_item
-            self.result_item["theoretical_opt_prices"] = theoretical_opt_prices
+        # # 理論値
+        # if len(self.target_cols) <= 3 and len(list(self.item2prices.values())[0]) <= 9:
+        #     theoretical_sales_item, theoretical_opt_prices = self.calc_theoretical_values()
+        #     self.result_item["theoretical_sales"] = theoretical_sales_item
+        #     self.result_item["theoretical_opt_prices"] = theoretical_opt_prices
 
         for metric, result_item in self.result_item.items():
             if metric == "theoretical_opt_prices":
@@ -128,15 +128,15 @@ class Evaluator:
         return theoretical_sales_item, theoretical_opt_prices
 
     def make_result_df(self) -> pd.DataFrame:
-        result_df = self.test_df.copy()
+        result_df = self.test_df.copy().reset_index(drop=True)
         # 最適価格のdf
         X_opt = self.make_X(item_prices=self.opt_prices)
         opt_columns = {col: col + "_opt" for col in X_opt.columns}
-        X_opt = X_opt.rename(columns=opt_columns)
+        X_opt = X_opt.rename(columns=opt_columns).reset_index(drop=True)
         # 平均価格のdf
         X_avg = self.make_X(item_prices=self.avg_prices)
         avg_columns = {col: col + "_avg" for col in X_avg.columns}
-        X_avg = X_avg.rename(columns=avg_columns)
+        X_avg = X_avg.rename(columns=avg_columns).reset_index(drop=True)
         # concat
         result_df = pd.concat([result_df, X_opt, X_avg], axis=1)
         return result_df

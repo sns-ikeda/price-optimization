@@ -35,10 +35,14 @@ class PredictorMaker:
         target_col: str,
         test_df: Optional[pd.DataFrame] = None,
         params: Optional[dict[str, dict[str, float]]] = None,
+        plot: bool = True,
+        data_type: str = "realworld",
     ) -> None:
         self.predictor_name = predictor_name
         self.train_df = train_df
         self.test_df = test_df
+        self.plot = plot
+        self.data_type = data_type
         self.target_col = target_col
         self.item = get_item_from_label(target_col)
         self.params = params
@@ -73,25 +77,27 @@ class PredictorMaker:
         # 訓練データ&検証データに対する目的変数を予測
         y_pred_train = predictor.predict(X_train)
         self.evaluate(y=y_train, y_pred=y_pred_train, split_type="train")
-        plot(
-            y=y_train,
-            y_pred=y_pred_train,
-            predictor_name=self.predictor_name,
-            target_item=self.item,
-            suffix=train_suffix,
-            dir_path=RESULT_DIR / "realworld" / "predict",
-        )
+        if self.plot:
+            plot(
+                y=y_train,
+                y_pred=y_pred_train,
+                predictor_name=self.predictor_name,
+                target_item=self.item,
+                suffix=train_suffix,
+                dir_path=RESULT_DIR / self.data_type / "predict",
+            )
         if self.test_df is not None:
             y_pred_test = predictor.predict(X_test)
             self.evaluate(y=y_test, y_pred=y_pred_test, split_type="test")
-            plot(
-                y=y_test,
-                y_pred=y_pred_test,
-                predictor_name=self.predictor_name,
-                target_item=self.item,
-                suffix=test_suffix,
-                dir_path=RESULT_DIR / "realworld" / "predict",
-            )
+            if self.plot:
+                plot(
+                    y=y_test,
+                    y_pred=y_pred_test,
+                    predictor_name=self.predictor_name,
+                    target_item=self.item,
+                    suffix=test_suffix,
+                    dir_path=RESULT_DIR / self.data_type / "predict",
+                )
         # モデルを保存
         save_path = MODEL_DIR / self.predictor_name / train_or_test / f"{self.item}_{suffix}.pickle"
         with open(save_path, "wb") as f:
