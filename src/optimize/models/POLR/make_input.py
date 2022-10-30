@@ -15,28 +15,32 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     # 集合を作成
     M = [str(m) for m in range(params.num_of_items)]
     K = list(range(params.num_of_prices))
-    _D = [len(M) + i for i in range(params.num_of_other_features)]
+    _D = [str(len(M) + i) for i in range(params.num_of_other_features)]
     D = {m: _D for m in M}
     index_set = IndexSet(D=D, M=M, K=K)
-    prices = list(np.linspace(params.price_min, params.price_max, params.num_of_items))
+    prices = list(np.linspace(params.price_min, params.price_max, params.num_of_prices))
     # 定数を作成
     P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
     base_seed = params.seed
     g, beta, beta0 = dict(), dict(), dict()
-    quantity_min = params.base_quantity * 0.8
-    quantity_max = params.base_quantity * 1.2
-    coef = 3
+    # quantity_min = params.base_quantity * 0.8
+    # quantity_max = params.base_quantity * 1.2
+    # coef = 3
     for m in M:
-        beta0[m] = int((quantity_max - quantity_min) * np.random.rand() + quantity_min)
+        # beta0[m] = int((quantity_max - quantity_min) * np.random.rand() + quantity_min)
+        np.random.seed(base_seed + int(m))
+        beta0[m] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
         for mp in M + D[m]:
             np.random.seed(base_seed + int(m) + int(mp))
+            # beta[m, mp] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             if m == mp:
-                beta[m, mp] = -(coef * len(M) * round(np.random.rand(), 2))
+                beta[m, mp] = round(np.random.normal(loc=-1, scale=1, size=1)[0], 3)
             else:
-                beta[m, mp] = coef * round(np.random.rand(), 2)
+                beta[m, mp] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
         for d in D[m]:
-            np.random.seed(base_seed + d)
-            g[m, d] = round(np.random.rand(), 3)
+            np.random.seed(base_seed + int(d))
+            # g[m, d] = round(np.random.rand(), 3)
+            g[m, d] = 1.0
     constant = Constant(beta=beta, beta0=beta0, g=g, P=P, prices=prices)
     logger.info(f"D: {D}")
     logger.info(f"beta: {beta}")
@@ -64,7 +68,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         for col, coef in coef_dict.items():
             beta[m, col] = coef
         beta0[m] = model.intercept_
-        D[m] = [col for col in coef_dict.keys() if col not in M]
+        D[m] = [col.split("_")[-1] for col in coef_dict.keys() if col not in M]
     g = params.g
     index_set = IndexSet(D=D, M=M, K=K)
     constant = Constant(beta=beta, beta0=beta0, g=g, P=P)

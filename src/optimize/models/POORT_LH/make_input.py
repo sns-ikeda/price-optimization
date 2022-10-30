@@ -16,7 +16,7 @@ from src.optimize.processing.binary_tree import leaf2LtRt as leaf2LtRt_
 def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
     """人工的にモデルのパラメータを生成"""
     # 集合を作成
-    M = list(range(params.num_of_items))
+    M = [str(m) for m in range(params.num_of_items)]
     K = list(range(params.num_of_prices))
     _D = [max(M) + 1 + i for i in range(params.num_of_other_features)]
     D = {m: _D for m in M}
@@ -31,39 +31,45 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     index_set = IndexSet(D=D, M=M, K=K, TL=TL, L=L, R=R)
 
     # 定数を作成
-    base_price = params.base_price
-    unit_price = int(base_price / len(K))
-    price_max = base_price + unit_price * max(K)
+    prices = list(np.linspace(params.price_min, params.price_max, params.num_of_prices))
+    prices = [round(price, 3) for price in prices]
+    price_avg = np.mean(prices)
+    P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
+    # base_price = params.base_price
+    # unit_price = int(base_price / len(K))
+    # price_max = base_price + unit_price * max(K)
 
-    def scale_price(base_price: int, price_max: int, unit_price: int, k: int) -> float:
-        scaled_price = (base_price + unit_price * k) / price_max
-        return scaled_price
+    # def scale_price(base_price: int, price_max: int, unit_price: int, k: int) -> float:
+    #     scaled_price = (base_price + unit_price * k) / price_max
+    #     return scaled_price
 
-    P = {
-        (m, k): round(scale_price(base_price, price_max, unit_price, k), 3)
-        for m, k in itertools.product(M, K)
-    }
+    # P = {
+    #     (m, k): round(scale_price(base_price, price_max, unit_price, k), 3)
+    #     for m, k in itertools.product(M, K)
+    # }
     base_seed = params.seed
     a, b, g, epsilon, beta, beta0 = dict(), dict(), dict(), dict(), dict(), dict()
     for m in M:
         epsilon[m] = 0.001
         for t in TB[m]:
-            np.random.seed(base_seed + m + t)
-            b[m, t] = round(np.random.rand(), 3) * (0.25 * (len(M) + len(D[m])))
+            np.random.seed(base_seed + int(m) + t)
+            b[m, t] = round(np.random.rand() * price_avg * 0.5 * (len(M) + len(D[m])), 3)
 
             for mp in M + D[m]:
-                np.random.seed(base_seed + mp + t)
+                np.random.seed(base_seed + int(mp) + t)
                 a[m, mp, t] = round(np.random.rand(), 3)
 
         for t in TL[m]:
-            beta0[m, t] = 0
+            beta0[m, t] = round(np.random.rand() * 10, 3)
+            # beta0[m, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             for mp in M + D[m]:
-                np.random.seed(base_seed + m + mp + t)
-                beta[m, mp, t] = 20 * round(np.random.rand(), 3) - 10
+                np.random.seed(base_seed + int(m) + int(mp) + t)
+                beta[m, mp, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
+                # beta[m, mp, t] = 20 * round(np.random.rand(), 3) - 10
         for d in D[m]:
             np.random.seed(base_seed + d)
             g[m, d] = round(np.random.rand(), 3)
-    constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P)
+    constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P, prices=prices)
     logger.info(f"D: {D}")
     logger.info(f"beta: {beta}")
     logger.info(f"beta0: {beta0}")

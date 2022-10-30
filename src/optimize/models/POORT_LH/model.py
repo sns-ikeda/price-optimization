@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -14,7 +14,7 @@ from src.optimize.result import OptResult
 from src.utils.paths import RESULT_DIR
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class IndexSet:
     D: dict[str, list[str]]
     M: list[str]
@@ -24,7 +24,7 @@ class IndexSet:
     R: dict[tuple[str, int], list[int]]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class Constant:
     beta: dict[tuple[str, str, int], float]
     beta0: dict[tuple[str, int], float]
@@ -33,6 +33,7 @@ class Constant:
     b: dict[tuple[str, int], float]
     g: dict[tuple[str, str], float]
     P: dict[tuple[str, int], float]
+    prices: list[float] = field(default_factory=list)
     big_M: int = 10000
 
 
@@ -83,6 +84,7 @@ class ConstraintsMixin:
     constant: Constant
     variable: Variable
     problem: pulp.LpProblem
+    x: Optional[dict[str, int]]
 
     def set_constraints(self) -> None:
         self._set_q_constraints()
@@ -91,6 +93,12 @@ class ConstraintsMixin:
         self._set_price_constraints()
         self._set_p_constraints()
         self._set_u_constraints()
+        if self.x is not None:
+            self._set_x_constraints()
+
+    def _set_x_constraints(self) -> None:
+        for m, k in self.x.items():
+            self.problem += self.variable.x[m, k] == 1
 
     def _set_q_constraints(self) -> None:
         for m in self.index_set.M:
@@ -185,9 +193,10 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     variable: Variable
     problem: pulp.LpProblem
 
-    def __init__(self, index_set: IndexSet, constant: Constant):
+    def __init__(self, index_set: IndexSet, constant: Constant, x: Optional[dict[str, int]] = None):
         self.index_set = index_set
         self.constant = constant
+        self.x = x
         self.name = "POORT_LH"
         self.result = None
         self.calculation_time = None

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Optional, TypeVar
+from typing import Any, Optional, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -34,7 +34,7 @@ class PredictorMaker:
         train_df: pd.DataFrame,
         target_col: str,
         test_df: Optional[pd.DataFrame] = None,
-        params: Optional[dict[str, dict[str, float]]] = None,
+        params: Optional[dict[str, Any]] = None,
         plot: bool = True,
         data_type: str = "realworld",
     ) -> None:
@@ -48,7 +48,9 @@ class PredictorMaker:
         self.params = params
         self.result: dict[str, dict[str, float]] = dict()
 
-    def run(self, train_or_test: str, suffix: Optional[str] = None) -> Predictor:
+    def run(
+        self, train_or_test: str, suffix: Optional[str] = None, tune: bool = False
+    ) -> Predictor:
         # 説明変数と目的変数を分離
         X_train = self.train_df.drop(columns=[self.target_col])
         y_train = self.train_df[[self.target_col]]
@@ -66,13 +68,14 @@ class PredictorMaker:
         module_path = PRED_DIR / self.predictor_name / "train.py"
         train = get_object_from_module(module_path, "train")
 
+        # ハイパラチューニング
+        if tune:
+            logger.info(f"ハイパラチューニングを実行")
+            self.params = self.tune_params(X_train, y_train)
+
         # モデルを構築・評価
         logger.info(f"item: {self.item}")
-        if self.params is None:
-            params = None
-        else:
-            params = self.params[item]
-        predictor = train(X=X_train, y=y_train, suffix=train_suffix, params=params)
+        predictor = train(X=X_train, y=y_train, suffix=train_suffix, params=self.params)
 
         # 訓練データ&検証データに対する目的変数を予測
         y_pred_train = predictor.predict(X_train)
@@ -106,13 +109,19 @@ class PredictorMaker:
 
     def evaluate(self, y: np.array, y_pred: np.array, split_type: str) -> None:
         # 二乗平均平方根誤差
-        rmse = round(np.sqrt(mean_squared_error(y, y_pred)), 1)
+        rmse = round(np.sqrt(mean_squared_error(y, y_pred)), 2)
         self.result.setdefault("rmse", dict())[split_type] = rmse
         logger.info(f"RMSE for {split_type} data [{self.item}]: {rmse}")
         # 決定係数
         r2 = round(r2_score(y, y_pred), 2)
         self.result.setdefault("r2", dict())[split_type] = r2
         logger.info(f"R^2 for {split_type} data [{self.item}]: {r2}")
+
+    def tune_params(self, X, y) -> dict[str, Any]:
+        module_path = PRED_DIR / self.predictor_name / "tune_params.py"
+        tune_params = get_object_from_module(module_path, "tune_params")
+        params = tune_params(X, y)
+        return params
 
 
 if __name__ == "__main__":

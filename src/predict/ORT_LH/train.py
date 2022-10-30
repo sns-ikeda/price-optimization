@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from typing import Optional
 
 import pandas as pd
@@ -23,11 +22,13 @@ def train(
     target_col = y.columns[0]
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
-        params_ = {"max_depth": 2, "cp": 0.001}
+        logger.info("parameters are not set")
+        params_ = {"max_depth": 2}
     else:
-        params_ = copy.deepcopy(params)
+        logger.info(f"params: {params}")
+        params_ = params.copy()
     if suffix is not None:
-        params_ = {"max_depth": 2, "cp": 0.001} if "test_train" in suffix else params_
+        params_ = {"max_depth": 2} if "test_train" in suffix else params_
     # 学習
     logger.info("fitting by ORT_LH...")
     model = iai.OptimalTreeRegressor(
@@ -35,11 +36,12 @@ def train(
         normalize_y=False,
         normalize_X=False,
         hyperplane_config={"sparsity": "all"},
-        **params_,
         regression_features="all",
         regression_weighted_betas=True,
         regression_sparsity="all",
-        regression_lambda=0.01,
+        regression_lambda=0,
+        cp=0,
+        **params_,
     )
     model.fit(X, y[target_col].values)
     if suffix is not None:

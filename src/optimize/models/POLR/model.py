@@ -84,29 +84,16 @@ class ConstraintsMixin:
 
     def _set_q_constraints(self) -> None:
         for m in self.index_set.M:
-            try:
-                self.problem += (
-                    self.variable.q[m]
-                    == pulp.lpSum(
-                        self.constant.beta[m, mp] * self.variable.p[mp] for mp in self.index_set.M
-                    )
-                    + pulp.lpSum(
-                        self.constant.beta[m, d] * self.constant.g[m, d]
-                        for d in self.index_set.D[m]
-                    )
-                    + self.constant.beta0[m]
+            self.problem += (
+                self.variable.q[m]
+                == pulp.lpSum(
+                    self.constant.beta[m, mp] * self.variable.p[mp] for mp in self.index_set.M
                 )
-            except KeyError:
-                # 特徴量として使わない商品のときは例外処理
-                self.problem += (
-                    self.variable.q[m]
-                    == self.constant.beta[m, m] * self.variable.p[m]
-                    + pulp.lpSum(
-                        self.constant.beta[m, d] * self.constant.g[m, d]
-                        for d in self.index_set.D[m]
-                    )
-                    + self.constant.beta0[m]
+                + pulp.lpSum(
+                    self.constant.beta[m, d] * self.constant.g[m, d] for d in self.index_set.D[m]
                 )
+                + self.constant.beta0[m]
+            )
 
     def _set_price_constraints(self) -> None:
         for m in self.index_set.M:
@@ -137,7 +124,7 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     variable: Variable
     problem: pulp.LpProblem
 
-    def __init__(self, index_set: IndexSet, constant: Constant):
+    def __init__(self, index_set: IndexSet, constant: Constant, **kwargs):
         self.index_set = index_set
         self.constant = constant
         self.name = "POLR"
