@@ -25,6 +25,7 @@ clean:
 	find . -type f -name "*.html" -delete
 	find . -type f -name "*.lp" -delete
 	find . -type f -name "*.pickle" -delete
+	find . -type f -name "*.lp" -delete
 	find ./data/*/processed/ -type f -name "*.csv" -delete
 	find . -type d -name "__pycache__" -delete
 
