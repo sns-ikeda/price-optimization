@@ -34,7 +34,7 @@ def calculate_z(x: dict[str, int], constant, index_set) -> dict[str, int]:
 
 def calculate_q(x: dict[str, int], z: dict[str, int], constant, index_set) -> dict[str, float]:
     """x, zから目的関数を計算"""
-    np.array([constant.P[(m, k)] for m, k in x.items()])
+
     q = dict()
     for m, t in z.items():
         q_m = constant.beta0[m, t]
