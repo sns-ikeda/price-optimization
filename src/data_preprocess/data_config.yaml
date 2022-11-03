@@ -1,8 +1,15 @@
 breakfast:
+  # store_num: 25027
   store_num: 2277
-  category: "BAG SNACKS"
-  sub_category: "PRETZELS"
-  manufacturer: "SNYDER S"
+  # category: "BAG SNACKS"
+  # sub_category: "PRETZELS"
+  # sub_category: "MOUTHWASHES (ANTISEPTIC)"
+  # sub_category: "ALL FAMILY CEREAL"
+  # sub_category: "ADULT CEREAL"
+  sub_category: "PIZZA/PREMIUM"
+  # sub_category: "KIDS CEREAL"
+  # sub_category: "MOUTHWASH/RINSES AND SPRAYS"
+  # manufacturer: "SNYDER S"
   target_col: "UNITS"
   base_cols:
       - "YEAR"
@@ -11,6 +18,9 @@ breakfast:
       - "PRICE"
       - "DESCRIPTION"
       - "UNITS"
+      # - "FEATURE"
+      # - "DISPLAY"
+      # - "TPR_ONLY"
   master_cols:
       - "YEAR"
       - "MONTH"

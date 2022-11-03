@@ -7,10 +7,10 @@ artificial:
   num_of_prices: 5
   num_of_other_features: 1
   depth_of_trees: 3
-  base_price: 1000
+  base_price: 5
   predictor_names:
-    # - "linear_regression"
-    - "ORT_LH"
+    - "linear_regression"
+    # - "ORT_LH"
   algo_names:
     - "solver_naive"
 
@@ -18,7 +18,9 @@ realworld:
   dataset_name: "breakfast"
   predictor_names:
     - "linear_regression"
-    - "ORT_LH"
+    # - "ORT_LH"
+    # - "nn"
+    # - "lightGBM"
   algo_names:
     - "solver_naive"
   num_of_prices: 5
