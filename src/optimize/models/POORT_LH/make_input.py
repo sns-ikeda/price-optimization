@@ -33,7 +33,7 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     # 定数を作成
     prices = list(np.linspace(params.price_min, params.price_max, params.num_of_prices))
     prices = [round(price, 3) for price in prices]
-    price_avg = np.mean(prices)
+    price_avg, price_min, price_max = np.mean(prices), min(prices), max(prices)
     P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
     # base_price = params.base_price
     # unit_price = int(base_price / len(K))
@@ -52,22 +52,24 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     for m in M:
         epsilon[m] = 0.001
         for t in TB[m]:
-            np.random.seed(base_seed + int(m) + t)
-            b[m, t] = round(np.random.rand() * price_avg * 0.5 * (len(M) + len(D[m])), 3)
-
             for mp in M + D[m]:
-                np.random.seed(base_seed + int(mp) + t)
+                np.random.seed(base_seed + 5 * int(m) + int(mp) + t)
                 a[m, mp, t] = round(np.random.rand(), 3)
+            a_sum = sum([a[m, mp, t] for mp in M + D[m]])
+            b[m, t] = (price_min + price_max) / 2 * a_sum
 
         for t in TL[m]:
-            beta0[m, t] = round(np.random.rand() * 10, 3)
+            beta0[m, t] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
             # beta0[m, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             for mp in M + D[m]:
-                np.random.seed(base_seed + int(m) + int(mp) + t)
-                beta[m, mp, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
-                # beta[m, mp, t] = 20 * round(np.random.rand(), 3) - 10
+                np.random.seed(base_seed + 10 * int(m) + int(mp) + t)
+                # beta[m, mp, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
+                if m == mp:
+                    beta[m, mp, t] = round(np.random.normal(loc=-1, scale=1, size=1)[0], 3)
+                else:
+                    beta[m, mp, t] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
         for d in D[m]:
-            np.random.seed(base_seed + d)
+            np.random.seed(base_seed + int(m) + d)
             g[m, d] = round(np.random.rand(), 3)
     constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P, prices=prices)
     logger.info(f"D: {D}")
