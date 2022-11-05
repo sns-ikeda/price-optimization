@@ -41,8 +41,12 @@ def train(
         regression_sparsity="all",
         regression_lambda=0,
         cp=0,
+        # ls_num_tree_restarts=1000,
+        # ls_num_hyper_restarts=100,
+        # num_threads=8,
         **params_,
     )
+    print(model.get_params())
     model.fit(X, y[target_col].values)
     if suffix is not None:
         save_path = RESULT_DIR / "synthetic" / "predict" / f"ORT_{item}_{suffix}.html"

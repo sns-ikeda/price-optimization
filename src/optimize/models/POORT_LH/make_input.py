@@ -50,24 +50,25 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     base_seed = params.seed
     a, b, g, epsilon, beta, beta0 = dict(), dict(), dict(), dict(), dict(), dict()
     for m in M:
-        epsilon[m] = 0.001
+        epsilon[m] = 0.00001
         for t in TB[m]:
             for mp in M + D[m]:
-                np.random.seed(base_seed + 5 * int(m) + int(mp) + t)
+                np.random.seed(base_seed + int(m) + 5 * int(mp) + t)
                 a[m, mp, t] = round(np.random.rand(), 3)
             a_sum = sum([a[m, mp, t] for mp in M + D[m]])
-            b[m, t] = (price_min + price_max) / 2 * a_sum
+            b[m, t] = round((price_min + price_max) / 2 * a_sum, 3)
 
         for t in TL[m]:
-            beta0[m, t] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
-            # beta0[m, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
+            # beta0[m, t] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
+            beta0[m, t] = round((200 - 100) * np.random.rand() + 100, 3)
             for mp in M + D[m]:
-                np.random.seed(base_seed + 10 * int(m) + int(mp) + t)
-                # beta[m, mp, t] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
+                np.random.seed(base_seed + int(m) + 10 * int(mp) + t)
                 if m == mp:
                     beta[m, mp, t] = round(np.random.normal(loc=-1, scale=1, size=1)[0], 3)
+                    # beta[m, mp, t] = - round((20 - 10) * np.random.rand() + 10, 3)
                 else:
                     beta[m, mp, t] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
+                    # beta[m, mp, t] = round((5 - 0) * np.random.rand(), 3)
         for d in D[m]:
             np.random.seed(base_seed + int(m) + d)
             g[m, d] = round(np.random.rand(), 3)

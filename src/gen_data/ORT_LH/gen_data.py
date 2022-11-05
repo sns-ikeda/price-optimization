@@ -12,6 +12,8 @@ def calculate_z(x: dict[str, int], constant, index_set) -> dict[str, int]:
     for m in index_set.M:
         t = 0
         while True:
+            if len(sum(index_set.R.values(), []) + sum(index_set.L.values(), [])) == 0:
+                break
             linear_sum = 0
             for mp in index_set.M:
                 k = x[mp]
