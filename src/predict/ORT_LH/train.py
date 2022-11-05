@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
 from typing import Optional
+
+os.environ["JULIA_NUM_THREADS"] = "8"
 
 import pandas as pd
 from interpretableai import iai

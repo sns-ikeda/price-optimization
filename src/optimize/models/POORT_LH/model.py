@@ -251,4 +251,3 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
             constant=self.constant,
             variable=self.variable,
         )
-
