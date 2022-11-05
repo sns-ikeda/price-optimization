@@ -29,9 +29,10 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     for m in M:
         # beta0[m] = int((quantity_max - quantity_min) * np.random.rand() + quantity_min)
         np.random.seed(base_seed + int(m))
-        beta0[m] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
+        # beta0[m] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
+        beta0[m] = round((200 - 100) * np.random.rand() + 100, 3)
         for mp in M + D[m]:
-            np.random.seed(base_seed + int(m) + int(mp))
+            np.random.seed(base_seed + int(m) + 10 * int(mp))
             # beta[m, mp] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             if m == mp:
                 beta[m, mp] = round(np.random.normal(loc=-1, scale=1, size=1)[0], 3)
