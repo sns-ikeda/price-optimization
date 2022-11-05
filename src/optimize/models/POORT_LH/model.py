@@ -231,6 +231,9 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:
             solver = pulp.PULP_CBC_CMD(timeLimit=TimeLimit)
+
+        if write_lp:
+            self.write_lp()
         # 求解
         start = time.time()
         self.problem.solve(solver=solver)
@@ -248,5 +251,4 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
             constant=self.constant,
             variable=self.variable,
         )
-        if write_lp:
-            self.write_lp()
+
