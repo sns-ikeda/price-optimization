@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import collections
+
 import numpy as np
 import pandas as pd
+from logzero import logger
 
 from src.optimize.models.POLR.model import Constant, IndexSet
 
@@ -56,10 +59,11 @@ def generate_data(
     noise_variance: float,
 ) -> dict[str, pd.DataFrame]:
     df_dict = dict()
+    zs_dict = dict()
     M = index_set.M
     for m in M:
         # 販売数のデータ作成
-        qs = []
+        qs, zs = [], []
         for prices in price_candidates:
             x = dict()
             for price, m_ in zip(prices, M):
@@ -70,6 +74,8 @@ def generate_data(
             z = calculate_z(x, constant, index_set)
             q = calculate_q(x, z, constant, index_set)
             qs.append(round(q[m], 3))
+            zs.append(z[m])
+        zs_dict[m] = dict(collections.Counter(zs))
 
         # 販売数にノイズ追加
         q_avg = np.mean(qs)
@@ -87,4 +93,5 @@ def generate_data(
         unit_df = pd.DataFrame(qs_noise, columns=unit_col)
         df = pd.concat([price_df, unit_df], axis=1)
         df_dict[m] = df
+    logger.info(f"z ratio: {zs_dict}")
     return df_dict
