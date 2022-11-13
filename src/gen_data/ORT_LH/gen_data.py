@@ -75,7 +75,7 @@ def generate_data(
             q = calculate_q(x, z, constant, index_set)
             qs.append(round(q[m], 3))
             zs.append(z[m])
-        zs_dict[m] = dict(collections.Counter(zs))
+        zs_dict[m] = sorted(dict(collections.Counter(zs)).items())
 
         # 販売数にノイズ追加
         q_avg = np.mean(qs)
