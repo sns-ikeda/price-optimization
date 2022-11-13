@@ -1,6 +1,6 @@
-from src.optimize.params import ArtificialDataParameter
-from src.optimize.optimizer import Optimizer
 from src.gen_data.ORT_LH.gen_data import generate_data
+from src.optimize.optimizer import Optimizer
+from src.optimize.params import ArtificialDataParameter
 
 
 def test_generate_data():
@@ -110,7 +110,7 @@ def test_generate_data():
         5000,
         2000,
         4000,
-        6000
+        6000,
     ]
     constant.a.update(a)
     constant.b.update(b)
@@ -118,9 +118,7 @@ def test_generate_data():
     constant.beta.update(beta)
     constant.beta0.update(beta0)
 
-    df_dict = generate_data(
-        price_candidates, index_set, constant, noise_variance=0
-    )
+    df_dict = generate_data(price_candidates, index_set, constant, noise_variance=0)
     q_0_hat = df_dict["0"]["UNITS_0"].to_list()
     for q, q_hat in zip(q_0, q_0_hat):
         assert q == q_hat
