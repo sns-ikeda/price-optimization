@@ -31,13 +31,18 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
         np.random.seed(base_seed + int(m))
         # beta0[m] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
         beta0[m] = round((200 - 100) * np.random.rand() + 100, 3)
+        target_m = np.random.choice([m_ for m_ in M if m_ != m])
         for mp in M + D[m]:
             np.random.seed(base_seed + int(m) + 10 * int(mp))
             # beta[m, mp] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             if m == mp:
-                beta[m, mp] = round(np.random.normal(loc=-1, scale=1, size=1)[0], 3)
+                beta[m, mp] = round(np.random.normal(loc=-10, scale=1, size=1)[0], 3)
             else:
-                beta[m, mp] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
+                # beta[m, mp] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
+                if mp == target_m:
+                    beta[m, mp] = round(np.random.normal(loc=5, scale=1, size=1)[0], 3)
+                else:
+                    beta[m, mp] = 0
         for d in D[m]:
             np.random.seed(base_seed + int(d))
             # g[m, d] = round(np.random.rand(), 3)
@@ -64,7 +69,7 @@ def make_realworld_input(params: RealDataParameter) -> tuple[IndexSet, Constant]
         predictor = params.item2predictor[m]
         feature_cols = predictor.feature_cols
         model = predictor.model
-        _coef_dict = {feature_cols[i]: coef for i, coef in enumerate(model.coef_[0])}
+        _coef_dict = {feature_cols[i]: coef for i, coef in enumerate(model.coef_)}
         coef_dict = rename_dict(_coef_dict)
         for col, coef in coef_dict.items():
             beta[m, col] = coef

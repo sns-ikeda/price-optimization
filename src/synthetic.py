@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import numpy as np
 from logzero import logger
 from tqdm import tqdm
@@ -17,7 +19,7 @@ from src.utils.paths import GEN_DATA_DIR, OPT_MODEL_DIR
 
 
 def get_price_candidates(
-    data_size: int, num_of_items: int, price_min: float, price_max: float, num_of_prices: int
+    data_size: int, num_of_items: int, price_min: float, price_max: float, num_of_prices: int, seed: int = 0
 ) -> list[list[float]]:
     price_candidates = []
     for i in range(data_size):
@@ -25,7 +27,7 @@ def get_price_candidates(
         #     round((price_max - price_min) * np.random.rand() + price_min, 3)
         #     for _ in range(num_of_items)
         # ]
-        np.random.seed(i)
+        np.random.seed(i + 10000 * seed)
         prices = [
             np.random.choice(np.linspace(price_min, price_max, num_of_prices))
             for _ in range(num_of_items)
@@ -78,23 +80,28 @@ if __name__ == "__main__":
     algo_name = "solver_naive"
 
     num_iteration = 10
-    data_size = 100
-    noise_variance = 0.0
+    data_size = 500
+    # data_size = 3000
+    noise_variance = 0.2
     num_of_items = 5
     num_of_prices = 5
-    depth_of_trees = 2
+    depth_of_trees = 4
     base_price = 5
     price_min = 0.8
     price_max = 1.0
     num_of_g = 2 * num_of_items * 0
     tune = False
+    calc_time_only = True
 
-    # for data_size in [100, 500, 1000, 3000]:
-    for data_size in [3000]:
+    result_output = dict()
+    for num_of_items in [20]:
+    # for noise_variance in [0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+    # for noise_variance in [noise_variance]:
+    # for data_size in [50, 100, 1000, 3000]:
+    # for data_size in [50, 100, 500, 1000, 3000]:
         results = []
         for i in tqdm(range(num_iteration)):
-        # for i in [0]:
-            # データ生成
+            # for i in [0]:
             params = ArtificialDataParameter(
                 num_of_items=num_of_items,
                 num_of_prices=num_of_prices,
@@ -107,22 +114,11 @@ if __name__ == "__main__":
                 seed=i,
                 data_type="artificial",
             )
-            price_candidates = get_price_candidates(
-                data_size=data_size,
-                num_of_items=params.num_of_items,
-                price_min=params.price_min,
-                price_max=params.price_max,
-                num_of_prices=num_of_prices,
-            )
+            # 真のモデル生成
+            result_dict = dict()
             logger.info("真のモデルのパラメータ")
             model_input = Optimizer.make_model_input(model_name=true_model_name, data_param=params)
             index_set, constant = model_input.index_set, model_input.constant
-
-            module_path = GEN_DATA_DIR / true_predictor_name / "gen_data.py"
-            generate_data = get_object_from_module(module_path, "generate_data")
-            df_dict = generate_data(
-                price_candidates, index_set, constant, noise_variance=noise_variance
-            )
 
             # 真のモデルに対する最適価格の計算
             module_path = OPT_MODEL_DIR / true_model_name / "model.py"
@@ -131,11 +127,30 @@ if __name__ == "__main__":
             algo_class = ALGORITHMS.get(algo_name, None)
             algorithm = algo_class(model=model, **ALGO_CONFIG[algo_name])
             algorithm.run()
+            result_dict["calculation_time"] = algorithm.result.calculation_time
+
+            # データ生成
+            if calc_time_only:
+                results.append(result_dict)
+                continue
+            price_candidates = get_price_candidates(
+                data_size=data_size,
+                num_of_items=params.num_of_items,
+                price_min=params.price_min,
+                price_max=params.price_max,
+                num_of_prices=num_of_prices,
+                seed=i
+            )
+            module_path = GEN_DATA_DIR / true_predictor_name / "gen_data.py"
+            generate_data = get_object_from_module(module_path, "generate_data")
+            df_dict = generate_data(
+                price_candidates, index_set, constant, noise_variance=noise_variance
+            )
 
             # 予測
             item2prices = {m: constant.prices for m in index_set.M}
             item2predictor = dict()
-            _pred_result, result_dict = dict(), dict()
+            _pred_result = dict()
             try:
                 for item, df in df_dict.items():
                     target_col = get_label_from_item(item=item)
@@ -199,18 +214,32 @@ if __name__ == "__main__":
                     f_ratio_lowers.append(ratio_lower)
 
         # 計算結果の出力
-        print("mean (upper)", np.mean(f_ratio_uppers))
-        print("std (upper)", np.std(f_ratio_uppers))
-        print("mean (lower)", np.mean(f_ratio_lowers))
-        print("std (lower)", np.std(f_ratio_lowers))
         result_summary = dict()
-        result_summary["mean (upper)"] = np.mean(f_ratio_uppers)
-        result_summary["std (upper)"] = np.std(f_ratio_uppers)
-        result_summary["mean (lower)"] = np.mean(f_ratio_lowers)
-        result_summary["std (lower)"] = np.std(f_ratio_lowers)
+        result_summary["mean (calculation_time)"] = np.mean([r["calculation_time"] for r in results])
+        result_summary["std (calculation_time)"] = np.std([r["calculation_time"] for r in results])
+        if calc_time_only:
+            json_name = f"./result_d{depth_of_trees}_n{num_of_items}_{use_predictor_name}.json"
+            with open(json_name, "w") as fp:
+                json.dump(result_summary, fp)
+            result_output[num_of_items] = result_summary
+        try:
+            print("mean (upper)", np.mean(f_ratio_uppers))
+            print("std (upper)", np.std(f_ratio_uppers))
+            print("mean (lower)", np.mean(f_ratio_lowers))
+            print("std (lower)", np.std(f_ratio_lowers))
+            result_summary["mean (upper)"] = np.mean(f_ratio_uppers)
+            result_summary["std (upper)"] = np.std(f_ratio_uppers)
+            result_summary["mean (lower)"] = np.mean(f_ratio_lowers)
+            result_summary["std (lower)"] = np.std(f_ratio_lowers)
 
-        import json
+            json_name = f"./result_{noise_variance}_{use_predictor_name}.json"
+            with open(json_name, "w") as fp:
+                json.dump(result_summary, fp)
+            result_output[noise_variance] = result_summary
+        except NameError:
+            pass
 
-        json_name = f"./result_{data_size}.json"
-        with open(json_name, "w") as fp:
-            json.dump(result_summary, fp)
+    import pandas as pd
+    result_df = pd.DataFrame.from_dict(result_output, orient='index').T
+    result_df.to_csv(f"./result_{use_predictor_name}.csv")
+    print(result_df)

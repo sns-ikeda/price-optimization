@@ -12,7 +12,7 @@ from src.predict.predictor import Predictor
 @dataclass(frozen=True)
 class AlgorithmParameter:
     solver: str = "Cbc"
-    TimeLimit: int = 600
+    TimeLimit: int = 3600
     NoRelHeurTime: float = 0
     MIPFocus: int = 0
     num_multi_start: int = 0

@@ -26,23 +26,23 @@ def train(
     item = target_col.split("_")[-1]
     if params is None or len(params) == 0:
         logger.info("parameters are not set")
-        params_ = {"max_depth": 2}
+        params_ = {"max_depth": 2, "regression_lambda": 0}
     else:
         logger.info(f"params: {params}")
         params_ = params.copy()
     if suffix is not None:
-        params_ = {"max_depth": 2} if "test_train" in suffix else params_
+        params_ = {"max_depth": 2, "regression_lambda": 0} if "test_train" in suffix else params_
     # 学習
     logger.info("fitting by ORT_LH...")
     model = iai.OptimalTreeRegressor(
         random_seed=1,
         normalize_y=False,
         normalize_X=False,
-        hyperplane_config={"sparsity": "all"},
+        # hyperplane_config={"sparsity": "all"},
         regression_features="all",
         regression_weighted_betas=True,
         regression_sparsity="all",
-        regression_lambda=0,
+        # regression_lambda=0,
         cp=0,
         # ls_num_tree_restarts=1000,
         # ls_num_hyper_restarts=100,
