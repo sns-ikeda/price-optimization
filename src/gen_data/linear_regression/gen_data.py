@@ -13,8 +13,8 @@ def generate_data(
     index_set: IndexSet,
     constant: Constant,
     noise_variance: float,
-) -> dict[str, pd.DataFrame]:
-    df_dict = dict()
+) -> tuple[dict[str, pd.DataFrame], dict[str, float]]:
+    df_dict, q_avg_dict = dict(), dict()
     M = list(constant.beta0.keys())
     for m in M:
         # 外部変数の作成
@@ -47,6 +47,7 @@ def generate_data(
 
         # 販売数にノイズ追加
         q_avg = np.mean(qs)
+        q_avg_dict[m] = q_avg
         qs_noise = []
         for q in qs:
             qs_noise.append(
@@ -61,4 +62,4 @@ def generate_data(
         unit_df = pd.DataFrame(qs_noise, columns=unit_col)
         df = pd.concat([price_df, external_df, unit_df], axis=1)
         df_dict[m] = df
-    return df_dict
+    return df_dict, q_avg_dict

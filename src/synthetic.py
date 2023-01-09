@@ -19,7 +19,12 @@ from src.utils.paths import GEN_DATA_DIR, OPT_MODEL_DIR
 
 
 def get_price_candidates(
-    data_size: int, num_of_items: int, price_min: float, price_max: float, num_of_prices: int, seed: int = 0
+    data_size: int,
+    num_of_items: int,
+    price_min: float,
+    price_max: float,
+    num_of_prices: int,
+    seed: int = 0,
 ) -> list[list[float]]:
     price_candidates = []
     for i in range(data_size):
@@ -71,34 +76,35 @@ def calc_obj(
 
 
 if __name__ == "__main__":
-    # use_predictor_name = "linear_regression"
-    use_predictor_name = "ORT_LH"
-    # true_predictor_name = "linear_regression"
-    true_predictor_name = "ORT_LH"
+    use_predictor_name = "linear_regression"
+    # use_predictor_name = "ORT_LH"
+    true_predictor_name = "linear_regression"
+    # true_predictor_name = "ORT_LH"
     use_model_name = predictor2model[use_predictor_name]
     true_model_name = predictor2model[true_predictor_name]
     algo_name = "solver_naive"
 
-    num_iteration = 10
+    num_iteration = 3
+    # data_size = 500
     data_size = 500
-    # data_size = 3000
+    test_data_size = 3000
     noise_variance = 0.2
     num_of_items = 5
     num_of_prices = 5
-    depth_of_trees = 4
+    depth_of_trees = 2
     base_price = 5
     price_min = 0.8
     price_max = 1.0
     num_of_g = 2 * num_of_items * 0
-    tune = False
-    calc_time_only = True
+    tune = True
+    calc_time_only = False
 
     result_output = dict()
-    for num_of_items in [20]:
+    # for num_of_items in [20]:
     # for noise_variance in [0, 0.2, 0.4, 0.6, 0.8, 1.0]:
-    # for noise_variance in [noise_variance]:
-    # for data_size in [50, 100, 1000, 3000]:
-    # for data_size in [50, 100, 500, 1000, 3000]:
+    for noise_variance in [noise_variance]:
+        # for data_size in [50, 100, 1000, 3000]:
+        # for data_size in [50, 100, 500, 1000, 3000]:
         results = []
         for i in tqdm(range(num_iteration)):
             # for i in [0]:
@@ -133,31 +139,44 @@ if __name__ == "__main__":
             if calc_time_only:
                 results.append(result_dict)
                 continue
-            price_candidates = get_price_candidates(
+            module_path = GEN_DATA_DIR / true_predictor_name / "gen_data.py"
+            generate_data = get_object_from_module(module_path, "generate_data")
+
+            # 訓練データ生成
+            price_candidates_train = get_price_candidates(
                 data_size=data_size,
                 num_of_items=params.num_of_items,
                 price_min=params.price_min,
                 price_max=params.price_max,
                 num_of_prices=num_of_prices,
-                seed=i
+                seed=i,
             )
-            module_path = GEN_DATA_DIR / true_predictor_name / "gen_data.py"
-            generate_data = get_object_from_module(module_path, "generate_data")
-            df_dict = generate_data(
-                price_candidates, index_set, constant, noise_variance=noise_variance
+            train_df_dict, q_avg_train = generate_data(
+                price_candidates_train, index_set, constant, noise_variance=noise_variance
             )
-
+            # テストデータ生成
+            price_candidates_test = get_price_candidates(
+                data_size=test_data_size,
+                num_of_items=params.num_of_items,
+                price_min=params.price_min,
+                price_max=params.price_max,
+                num_of_prices=num_of_prices,
+                seed=i + 10000,
+            )
+            test_df_dict, q_avg_test = generate_data(
+                price_candidates_test, index_set, constant, noise_variance=noise_variance
+            )
             # 予測
             item2prices = {m: constant.prices for m in index_set.M}
-            item2predictor = dict()
-            _pred_result = dict()
+            item2predictor, _pred_result = dict(), dict()
             try:
-                for item, df in df_dict.items():
+                for item, df in train_df_dict.items():
                     target_col = get_label_from_item(item=item)
                     # 訓練データに対する予測モデルを構築
                     pm = PredictorMaker(
                         predictor_name=use_predictor_name,
                         train_df=df,
+                        test_df=test_df_dict[item],
                         target_col=target_col,
                         data_type="synthetic",
                     )
@@ -169,6 +188,8 @@ if __name__ == "__main__":
                 continue
             pred_result = postproceess_pred_result(_pred_result)
             result_dict["pred"] = pred_result
+            result_dict["q_avg_train"] = q_avg_train
+            result_dict["q_avg_test"] = q_avg_test
 
             # 最適化
             # 訓練データに対して計算
@@ -215,7 +236,9 @@ if __name__ == "__main__":
 
         # 計算結果の出力
         result_summary = dict()
-        result_summary["mean (calculation_time)"] = np.mean([r["calculation_time"] for r in results])
+        result_summary["mean (calculation_time)"] = np.mean(
+            [r["calculation_time"] for r in results]
+        )
         result_summary["std (calculation_time)"] = np.std([r["calculation_time"] for r in results])
         if calc_time_only:
             json_name = f"./result_d{depth_of_trees}_n{num_of_items}_{use_predictor_name}.json"
@@ -240,6 +263,7 @@ if __name__ == "__main__":
             pass
 
     import pandas as pd
-    result_df = pd.DataFrame.from_dict(result_output, orient='index').T
+
+    result_df = pd.DataFrame.from_dict(result_output, orient="index").T
     result_df.to_csv(f"./result_{use_predictor_name}.csv")
     print(result_df)

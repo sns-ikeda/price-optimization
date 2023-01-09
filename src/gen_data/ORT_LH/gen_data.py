@@ -57,9 +57,8 @@ def generate_data(
     index_set: IndexSet,
     constant: Constant,
     noise_variance: float,
-) -> dict[str, pd.DataFrame]:
-    df_dict = dict()
-    zs_dict = dict()
+) -> tuple[dict[str, pd.DataFrame], dict[str, float]]:
+    df_dict, zs_dict, q_avg_dict = dict(), dict(), dict()
     M = index_set.M
     for m in M:
         # 販売数のデータ作成
@@ -79,6 +78,7 @@ def generate_data(
 
         # 販売数にノイズ追加
         q_avg = np.mean(qs)
+        q_avg_dict[m] = q_avg
         qs_noise = []
         for q in qs:
             qs_noise.append(
@@ -94,4 +94,4 @@ def generate_data(
         df = pd.concat([price_df, unit_df], axis=1)
         df_dict[m] = df
     logger.info(f"z ratio: {zs_dict}")
-    return df_dict
+    return df_dict, q_avg_dict
