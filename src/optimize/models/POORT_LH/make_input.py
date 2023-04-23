@@ -150,6 +150,7 @@ def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Co
     logger.info(f"b: {b}")
     return index_set, constant
 
+
 # # 1商品の場合
 # def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
 #     """人工的にモデルのパラメータを生成"""
