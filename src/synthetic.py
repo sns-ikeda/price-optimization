@@ -34,7 +34,7 @@ def get_price_candidates(
         # ]
         np.random.seed(i + 10000 * seed)
         prices = [
-            np.random.choice(np.linspace(price_min, price_max, num_of_prices))
+            round(np.random.choice(np.linspace(price_min, price_max, num_of_prices)), 3)
             for _ in range(num_of_items)
         ]
         price_candidates.append(prices)

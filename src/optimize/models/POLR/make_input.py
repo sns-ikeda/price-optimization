@@ -19,6 +19,8 @@ def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Cons
     D = {m: _D for m in M}
     index_set = IndexSet(D=D, M=M, K=K)
     prices = list(np.linspace(params.price_min, params.price_max, params.num_of_prices))
+    prices = [round(p, 3) for p in prices]
+
     # 定数を作成
     P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
     base_seed = params.seed
