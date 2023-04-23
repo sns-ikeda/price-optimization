@@ -199,16 +199,20 @@ def postproceess_pred_result(target_dict: dict[str, dict[str, dict[str, float]]]
     d = dict()
     for item, dict_ in target_dict.items():
         d.setdefault("rmse", dict()).setdefault("train", dict())[item] = dict_["rmse"]["train"]
+        d.setdefault("mape", dict()).setdefault("train", dict())[item] = dict_["mape"]["train"]
         d.setdefault("r2", dict()).setdefault("train", dict())[item] = dict_["r2"]["train"]
         try:
             d.setdefault("rmse", dict()).setdefault("test", dict())[item] = dict_["rmse"]["test"]
+            d.setdefault("mape", dict()).setdefault("test", dict())[item] = dict_["mape"]["test"]
             d.setdefault("r2", dict()).setdefault("test", dict())[item] = dict_["r2"]["test"]
         except KeyError:
             pass
     d["rmse"]["train"]["mean"] = round(np.mean(list(d["rmse"]["train"].values())), 3)
+    d["mape"]["train"]["mean"] = round(np.mean(list(d["mape"]["train"].values())), 3)
     d["r2"]["train"]["mean"] = round(np.mean(list(d["r2"]["train"].values())), 3)
     try:
         d["rmse"]["test"]["mean"] = round(np.mean(list(d["rmse"]["test"].values())), 3)
+        d["mape"]["test"]["mean"] = round(np.mean(list(d["mape"]["test"].values())), 3)
         d["r2"]["test"]["mean"] = round(np.mean(list(d["r2"]["test"].values())), 3)
     except KeyError:
         pass

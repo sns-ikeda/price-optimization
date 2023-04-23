@@ -6,7 +6,7 @@ from typing import Any, Optional, TypeVar
 import numpy as np
 import pandas as pd
 from logzero import logger
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, r2_score
 
 from src.data_preprocess.preprocessor import get_item_from_label
 from src.predict.plot import plot
@@ -112,6 +112,12 @@ class PredictorMaker:
         rmse = round(np.sqrt(mean_squared_error(y, y_pred)), 2)
         self.result.setdefault("rmse", dict())[split_type] = rmse
         logger.info(f"RMSE for {split_type} data [{self.item}]: {rmse}")
+
+        # 平均絶対パーセント誤差
+        mape = mean_absolute_percentage_error(y, y_pred)
+        self.result.setdefault("mape", dict())[split_type] = mape
+        logger.info(f"MAPE for {split_type} data [{self.item}]: {mape}")
+
         # 決定係数
         r2 = round(r2_score(y, y_pred), 2)
         self.result.setdefault("r2", dict())[split_type] = r2
