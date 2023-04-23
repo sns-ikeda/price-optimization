@@ -1,4 +1,4 @@
-.PHONY: env iai pre-commit lint format clean test artificial realworld tune_params data_preprocess train optimize
+.PHONY: env iai pre-commit lint format clean test synthetic realworld tune_params data_preprocess train optimize
 export PYTHONPATH := $(PWD)
 
 env:
@@ -12,7 +12,7 @@ pre-commit:
 	poetry run pre-commit install
 
 lint:
-	poetry run flake8 .
+	poetry run black . --check
 
 format:
 	poetry run isort . & poetry run black .
@@ -32,7 +32,7 @@ clean:
 test:
 	poetry run pytest .
 
-artificial:
+synthetic:
 	poetry run python src/main.py --data_type artificial
 
 realworld:
