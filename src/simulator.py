@@ -7,7 +7,7 @@ import pandas as pd
 from logzero import logger
 from sklearn.model_selection import train_test_split
 
-from src.configs import ALGO_CONFIG, ArtificialConfig, RealworldConfig
+from src.configs import ALGO_CONFIG, SyntheticConfig, RealworldConfig
 from src.data_preprocess.preprocessor import (
     DataPreprocessor,
     get_item2avg_prices,
@@ -16,7 +16,7 @@ from src.data_preprocess.preprocessor import (
 )
 from src.evaluate.evaluator import Evaluator
 from src.optimize.optimizer import Optimizer
-from src.optimize.params import ArtificialDataParameter, RealDataParameter, calc_g, make_data_params
+from src.optimize.params import SyntheticDataParameter, RealDataParameter, calc_g, make_data_params
 from src.optimize.predictor2model import predictor2model
 from src.optimize.result import OptResult
 from src.predict.predictor import Predictor, PredictorMaker
@@ -31,20 +31,20 @@ class Simulator:
         self,
         data_type: str,
         realworld_config: Optional[RealworldConfig] = None,
-        artificial_config: Optional[ArtificialConfig] = None,
+        synthetic_config: Optional[SyntheticConfig] = None,
     ) -> None:
         self.data_type = data_type
         if data_type == "realworld":
             self.config = realworld_config
-        elif data_type == "artificial":
-            self.config = artificial_config
+        elif data_type == "synthetic":
+            self.config = synthetic_config
 
         self.dp = None
         self.items = []
-        self.artificial_results_dict: dict[tuple[str, str], list[OptResult]] = dict()
+        self.synthetic_results_dict: dict[tuple[str, str], list[OptResult]] = dict()
         self.optimizer: Optional[Optimizer] = None
         self.evaluator: Optional[Evaluator] = None
-        self.data_params: list[ArtificialDataParameter | RealDataParameter] = make_data_params(
+        self.data_params: list[SyntheticDataParameter | RealDataParameter] = make_data_params(
             config=self.config, data_type=data_type
         )
         self.pred_result_train = dict()
@@ -54,12 +54,12 @@ class Simulator:
         self.eval_results_item = []
 
     def run(self) -> None:
-        if self.data_type == "artificial":
-            self.run_artificial()
+        if self.data_type == "synthetic":
+            self.run_synthetic()
         elif self.data_type == "realworld":
             self.run_realworld()
 
-    def run_artificial(self) -> None:
+    def run_synthetic(self) -> None:
         """人工データによるシミュレーションを実行"""
 
         for predictor_name in self.config.predictor_names:
@@ -74,7 +74,7 @@ class Simulator:
                         )
                         optimizer.run(**ALGO_CONFIG[algo_name])
                         results.append(optimizer.result)
-                self.artificial_results_dict[(model_name, algo_name)] = results
+                self.synthetic_results_dict[(model_name, algo_name)] = results
 
     def data_preprocess(self) -> None:
         self.dp = DataPreprocessor(self.config.dataset_name)

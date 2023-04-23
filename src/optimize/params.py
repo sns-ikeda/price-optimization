@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from src.configs import ArtificialConfig
+from src.configs import SyntheticConfig
 from src.predict.predictor import Predictor
 
 
@@ -20,7 +20,7 @@ class AlgorithmParameter:
 
 
 @dataclass(frozen=False)
-class ArtificialDataParameter:
+class SyntheticDataParameter:
     num_of_items: int
     num_of_prices: int
     num_of_other_features: int
@@ -30,7 +30,7 @@ class ArtificialDataParameter:
     price_max: float = 6.0
     base_quantity: int = 300
     seed: int = 0
-    data_type: str = "artificial"
+    data_type: str = "synthetic"
 
     def __eq__(self, other):
         if other is None or type(self) != type(other):
@@ -56,13 +56,13 @@ class RealDataParameter:
 
 
 def make_data_params(
-    config: ArtificialConfig, data_type: str, **kwargs
-) -> list[ArtificialDataParameter | RealDataParameter]:
+    config: SyntheticConfig, data_type: str, **kwargs
+) -> list[SyntheticDataParameter | RealDataParameter]:
     """シミュレーションで設定するパラメータの生成"""
     data_params = []
-    if data_type == "artificial":
+    if data_type == "synthetic":
         for num_of_items in config.num_of_items:
-            data_param = ArtificialDataParameter(
+            data_param = SyntheticDataParameter(
                 num_of_items=num_of_items,
                 num_of_prices=config.num_of_prices,
                 num_of_other_features=config.num_of_other_features,

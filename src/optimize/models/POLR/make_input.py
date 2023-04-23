@@ -6,11 +6,11 @@ import numpy as np
 from logzero import logger
 
 from src.optimize.models.POLR.model import Constant, IndexSet
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import SyntheticDataParameter, RealDataParameter
 from src.optimize.processing import rename_dict
 
 
-def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
+def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Constant]:
     """人工的にモデルのパラメータを生成"""
     # 集合を作成
     M = [str(m) for m in range(params.num_of_items)]

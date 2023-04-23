@@ -33,7 +33,7 @@ test:
 	poetry run pytest .
 
 synthetic:
-	poetry run python src/main.py --data_type artificial
+	poetry run python src/synthetic.py
 
 realworld:
 	poetry run python src/main.py --data_type realworld

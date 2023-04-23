@@ -5,7 +5,7 @@ from typing import Optional, TypeVar
 
 import pulp
 
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import SyntheticDataParameter, RealDataParameter
 
 IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")
@@ -17,7 +17,7 @@ class OptResult:
     calculation_time: float
     objective: float
     opt_prices: dict[str, float]
-    data_param: Optional[ArtificialDataParameter | RealDataParameter] = None
+    data_param: Optional[SyntheticDataParameter | RealDataParameter] = None
     problem: Optional[pulp.LpProblem] = None
     index_set: Optional[IndexSet] = None
     constant: Optional[Constant] = None

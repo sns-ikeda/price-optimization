@@ -1,10 +1,10 @@
 from src.gen_data.ORT_LH.gen_data import generate_data
 from src.optimize.optimizer import Optimizer
-from src.optimize.params import ArtificialDataParameter
+from src.optimize.params import SyntheticDataParameter
 
 
 def test_generate_data():
-    params = ArtificialDataParameter(
+    params = SyntheticDataParameter(
         num_of_items=3,
         num_of_prices=3,
         num_of_other_features=0,
@@ -14,7 +14,7 @@ def test_generate_data():
         price_max=3,
         base_quantity=300,
         seed=0,
-        data_type="artificial",
+        data_type="synthetic",
     )
     price_candidates = [
         [1.0, 1.0, 1.0],

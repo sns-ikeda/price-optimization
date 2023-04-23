@@ -7,7 +7,7 @@ from interpretableai import iai
 from logzero import logger
 
 from src.optimize.models.POORT_LH.model import Constant, IndexSet
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import SyntheticDataParameter, RealDataParameter
 from src.optimize.processing import rename_dict, rename_feature
 from src.optimize.processing.binary_tree import depth2branchnodes, depth2leaves
 from src.optimize.processing.binary_tree import leaf2LtRt as leaf2LtRt_
@@ -90,7 +90,7 @@ from src.optimize.processing.binary_tree import leaf2LtRt as leaf2LtRt_
 #     return index_set, constant
 
 # 1変数分岐の場合
-def make_artificial_input(params: ArtificialDataParameter) -> tuple[IndexSet, Constant]:
+def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Constant]:
     """人工的にモデルのパラメータを生成"""
     # 集合を作成
     M = [str(m) for m in range(params.num_of_items)]

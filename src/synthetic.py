@@ -10,7 +10,7 @@ from src.configs import ALGO_CONFIG
 from src.data_preprocess.preprocessor import get_label_from_item
 from src.optimize.algorithms import ALGORITHMS
 from src.optimize.optimizer import Optimizer
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import SyntheticDataParameter, RealDataParameter
 from src.optimize.predictor2model import predictor2model
 from src.predict.predictor import PredictorMaker
 from src.simulator import postproceess_pred_result
@@ -84,19 +84,18 @@ if __name__ == "__main__":
     true_model_name = predictor2model[true_predictor_name]
     algo_name = "solver_naive"
 
-    num_iteration = 3
-    # data_size = 500
-    data_size = 500
+    num_iteration = 1
+    data_size = 100
     test_data_size = 3000
     noise_variance = 0.2
-    num_of_items = 5
+    num_of_items = 3
     num_of_prices = 5
     depth_of_trees = 2
     base_price = 5
     price_min = 0.8
     price_max = 1.0
     num_of_g = 2 * num_of_items * 0
-    tune = True
+    tune = False
     calc_time_only = False
 
     result_output = dict()
@@ -108,7 +107,7 @@ if __name__ == "__main__":
         results = []
         for i in tqdm(range(num_iteration)):
             # for i in [0]:
-            params = ArtificialDataParameter(
+            params = SyntheticDataParameter(
                 num_of_items=num_of_items,
                 num_of_prices=num_of_prices,
                 num_of_other_features=num_of_g,
@@ -118,7 +117,6 @@ if __name__ == "__main__":
                 price_max=price_max,
                 base_quantity=300,
                 seed=i,
-                data_type="artificial",
             )
             # 真のモデル生成
             result_dict = dict()
@@ -224,6 +222,7 @@ if __name__ == "__main__":
             # f^(z^) / f*(z*), f*(z^) / f*(z*) の計算結果
             f_ratio_uppers, f_ratio_lowers = [], []
             for result in results:
+                # 価格戦略の評価
                 obj_true_price_true = result["obj"]["obj_true_price_true"]
                 obj_hat_price_hat = result["obj"]["obj_hat_price_hat"]
                 obj_true_price_hat = result["obj"]["obj_true_price_hat"]
@@ -254,6 +253,18 @@ if __name__ == "__main__":
             result_summary["std (upper)"] = np.std(f_ratio_uppers)
             result_summary["mean (lower)"] = np.mean(f_ratio_lowers)
             result_summary["std (lower)"] = np.std(f_ratio_lowers)
+            result_summary["mean (mape train)"] = np.mean(
+                [r["pred"]["mape"]["train"]["mean"] for r in results]
+            )
+            result_summary["std (mape train)"] = np.std(
+                [r["pred"]["mape"]["train"]["mean"] for r in results]
+            )
+            result_summary["mean (mape test)"] = np.mean(
+                [r["pred"]["mape"]["test"]["mean"] for r in results]
+            )
+            result_summary["std (mape test)"] = np.std(
+                [r["pred"]["mape"]["test"]["mean"] for r in results]
+            )
 
             json_name = f"./result_{noise_variance}_{use_predictor_name}.json"
             with open(json_name, "w") as fp:

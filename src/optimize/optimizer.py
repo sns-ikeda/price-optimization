@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, TypeVar
 
 from src.optimize.algorithms import ALGORITHMS
-from src.optimize.params import ArtificialDataParameter, RealDataParameter
+from src.optimize.params import SyntheticDataParameter, RealDataParameter
 from src.utils.module_handler import get_object_from_module
 from src.utils.paths import OPT_MODEL_DIR
 
@@ -37,7 +37,7 @@ class Optimizer:
 
     @staticmethod
     def make_model_input(
-        model_name: str, data_param: ArtificialDataParameter | RealDataParameter
+        model_name: str, data_param: SyntheticDataParameter | RealDataParameter
     ) -> ModelInput:
         """モデルの入力データを作成"""
         module_path = OPT_MODEL_DIR / model_name / "make_input.py"
