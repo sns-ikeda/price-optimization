@@ -1,6 +1,6 @@
 solver_naive:
   solver: "gurobi"
-  TimeLimit: 300
+  TimeLimit: 3600
 solver_heuristics:
   solver: "gurobi"
   NoRelHeurTime: 100
