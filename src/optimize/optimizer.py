@@ -25,7 +25,7 @@ class Optimizer:
         self,
         model_name: str,
         algo_name: str,
-        data_param: ArtificialDataParameter | RealDataParameter,
+        data_param: SyntheticDataParameter | RealDataParameter,
         x: Optional[dict[str, int]] = None,
     ):
         self.model_name = model_name
