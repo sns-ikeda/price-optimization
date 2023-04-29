@@ -1,4 +1,7 @@
 from abc import ABCMeta, abstractmethod
+from typing import Optional
+
+from src.optimize.result import OptResult
 
 
 class BaseAlgorithm(metaclass=ABCMeta):
@@ -6,7 +9,7 @@ class BaseAlgorithm(metaclass=ABCMeta):
 
     def __init__(self, model):
         self.model = model
-        self.result = None
+        self.result: Optional[OptResult] = None
 
     @abstractmethod
     def run(self) -> None:
