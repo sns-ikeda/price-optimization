@@ -302,6 +302,7 @@ if __name__ == "__main__":
 
     # csvで保存
     import pandas as pd
+
     result_df = pd.DataFrame.from_dict(result_output, orient="index").T
     result_df.to_csv(RESULT_DIR / "synthetic" / f"result_{use_predictor_name}.json")
     print(result_df)
