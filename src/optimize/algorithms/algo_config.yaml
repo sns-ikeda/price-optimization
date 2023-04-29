@@ -9,3 +9,5 @@ solver_heuristics:
 multi_start_local_search:
   num_multi_start: 3
   seed: 0
+milo_relax:
+  num_iteration: 10
