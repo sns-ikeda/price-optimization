@@ -6,7 +6,7 @@ import numpy as np
 from logzero import logger
 
 from src.optimize.models.POLR.model import Constant, IndexSet
-from src.optimize.params import SyntheticDataParameter, RealDataParameter
+from src.optimize.params import RealDataParameter, SyntheticDataParameter
 from src.optimize.processing import rename_dict
 
 

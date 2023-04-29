@@ -5,7 +5,7 @@ from typing import Optional, TypeVar
 
 import pulp
 
-from src.optimize.params import SyntheticDataParameter, RealDataParameter
+from src.optimize.params import RealDataParameter, SyntheticDataParameter
 
 IndexSet = TypeVar("IndexSet")
 Constant = TypeVar("Constant")

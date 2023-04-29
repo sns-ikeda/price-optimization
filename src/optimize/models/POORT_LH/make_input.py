@@ -7,7 +7,7 @@ from interpretableai import iai
 from logzero import logger
 
 from src.optimize.models.POORT_LH.model import Constant, IndexSet
-from src.optimize.params import SyntheticDataParameter, RealDataParameter
+from src.optimize.params import RealDataParameter, SyntheticDataParameter
 from src.optimize.processing import rename_dict, rename_feature
 from src.optimize.processing.binary_tree import depth2branchnodes, depth2leaves
 from src.optimize.processing.binary_tree import leaf2LtRt as leaf2LtRt_

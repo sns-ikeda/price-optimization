@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, TypeVar
 
 from src.optimize.algorithms import ALGORITHMS
-from src.optimize.params import SyntheticDataParameter, RealDataParameter
+from src.optimize.params import RealDataParameter, SyntheticDataParameter
 from src.utils.module_handler import get_object_from_module
 from src.utils.paths import OPT_MODEL_DIR
 
