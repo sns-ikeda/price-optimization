@@ -25,7 +25,7 @@ class SyntheticDataParameter:
     num_of_prices: int
     num_of_other_features: int
     depth_of_trees: int
-    base_price: int
+    base_price: int = 5
     price_min: float = 4.0
     price_max: float = 6.0
     base_quantity: int = 300
