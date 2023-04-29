@@ -10,12 +10,11 @@ from src.configs import ALGO_CONFIG
 from src.data_preprocess.preprocessor import get_label_from_item
 from src.optimize.algorithms import ALGORITHMS
 from src.optimize.optimizer import Optimizer
-from src.optimize.params import SyntheticDataParameter, RealDataParameter
+from src.optimize.params import RealDataParameter, SyntheticDataParameter
 from src.optimize.predictor2model import predictor2model
 from src.predict.predictor import PredictorMaker
-from src.simulator import postproceess_pred_result
 from src.utils.module_handler import get_object_from_module
-from src.utils.paths import GEN_DATA_DIR, OPT_MODEL_DIR
+from src.utils.paths import GEN_DATA_DIR, OPT_MODEL_DIR, RESULT_DIR
 
 
 def get_price_candidates(
@@ -26,6 +25,7 @@ def get_price_candidates(
     num_of_prices: int,
     seed: int = 0,
 ) -> list[list[float]]:
+    """ランダムで各商品の価格を生成"""
     price_candidates = []
     for i in range(data_size):
         # prices = [
@@ -45,10 +45,11 @@ def calc_obj(
     x: dict[str, int],
     constant,
     index_set,
-    predictor_name: str = "linear_regression",
+    predictor_name: str,
     algo_name: str = "solver_naive",
     data_param=dict(),
 ) -> float:
+    """価格が与えられた場合の目的関数（売上）を計算"""
     x_1: dict[str, int] = {
         k[0]: k[1] for k, v in x.items() if round(v, 2) == 1.0
     }  # x_mk = 1となるm: k
@@ -75,6 +76,31 @@ def calc_obj(
     return obj
 
 
+def average_pred_result(pred_result_dict: dict[str, dict[str, dict[str, float]]]):
+    """予測結果の商品平均を計算"""
+    d = dict()
+    for item, dict_ in pred_result_dict.items():
+        d.setdefault("rmse", dict()).setdefault("train", dict())[item] = dict_["rmse"]["train"]
+        d.setdefault("mape", dict()).setdefault("train", dict())[item] = dict_["mape"]["train"]
+        d.setdefault("r2", dict()).setdefault("train", dict())[item] = dict_["r2"]["train"]
+        try:
+            d.setdefault("rmse", dict()).setdefault("test", dict())[item] = dict_["rmse"]["test"]
+            d.setdefault("mape", dict()).setdefault("test", dict())[item] = dict_["mape"]["test"]
+            d.setdefault("r2", dict()).setdefault("test", dict())[item] = dict_["r2"]["test"]
+        except KeyError:
+            pass
+    d["rmse"]["train"]["mean"] = round(np.mean(list(d["rmse"]["train"].values())), 3)
+    d["mape"]["train"]["mean"] = round(np.mean(list(d["mape"]["train"].values())), 3)
+    d["r2"]["train"]["mean"] = round(np.mean(list(d["r2"]["train"].values())), 3)
+    try:
+        d["rmse"]["test"]["mean"] = round(np.mean(list(d["rmse"]["test"].values())), 3)
+        d["mape"]["test"]["mean"] = round(np.mean(list(d["mape"]["test"].values())), 3)
+        d["r2"]["test"]["mean"] = round(np.mean(list(d["r2"]["test"].values())), 3)
+    except KeyError:
+        pass
+    return d
+
+
 if __name__ == "__main__":
     use_predictor_name = "linear_regression"
     # use_predictor_name = "ORT_LH"
@@ -87,11 +113,11 @@ if __name__ == "__main__":
     num_iteration = 1
     data_size = 100
     test_data_size = 3000
-    noise_variance = 0.2
+    noise_variances = [0]
+    # noise_variances = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
     num_of_items = 3
     num_of_prices = 5
     depth_of_trees = 2
-    base_price = 5
     price_min = 0.8
     price_max = 1.0
     num_of_g = 2 * num_of_items * 0
@@ -99,20 +125,14 @@ if __name__ == "__main__":
     calc_time_only = False
 
     result_output = dict()
-    # for num_of_items in [20]:
-    # for noise_variance in [0, 0.2, 0.4, 0.6, 0.8, 1.0]:
-    for noise_variance in [noise_variance]:
-        # for data_size in [50, 100, 1000, 3000]:
-        # for data_size in [50, 100, 500, 1000, 3000]:
+    for noise_variance in noise_variances:
         results = []
         for i in tqdm(range(num_iteration)):
-            # for i in [0]:
             params = SyntheticDataParameter(
                 num_of_items=num_of_items,
                 num_of_prices=num_of_prices,
                 num_of_other_features=num_of_g,
                 depth_of_trees=depth_of_trees,
-                base_price=base_price,
                 price_min=price_min,
                 price_max=price_max,
                 base_quantity=300,
@@ -133,7 +153,8 @@ if __name__ == "__main__":
             algorithm.run()
             result_dict["calculation_time"] = algorithm.result.calculation_time
 
-            # データ生成
+            # 真のモデルを基にしたデータ生成
+            logger.info("データ生成")
             if calc_time_only:
                 results.append(result_dict)
                 continue
@@ -164,7 +185,7 @@ if __name__ == "__main__":
             test_df_dict, q_avg_test = generate_data(
                 price_candidates_test, index_set, constant, noise_variance=noise_variance
             )
-            # 予測
+            # 商品ごとの需要予測
             item2prices = {m: constant.prices for m in index_set.M}
             item2predictor, _pred_result = dict(), dict()
             try:
@@ -184,12 +205,14 @@ if __name__ == "__main__":
             except RuntimeError:
                 logger.error("predictor error")
                 continue
-            pred_result = postproceess_pred_result(_pred_result)
+
+            # 予測結果を格納
+            pred_result = average_pred_result(_pred_result)
             result_dict["pred"] = pred_result
             result_dict["q_avg_train"] = q_avg_train
             result_dict["q_avg_test"] = q_avg_test
 
-            # 最適化
+            # 価格最適化
             # 訓練データに対して計算
             data_param = RealDataParameter(
                 num_of_prices=params.num_of_prices,
@@ -197,11 +220,13 @@ if __name__ == "__main__":
                 item2prices=item2prices,
                 g=constant.g,
             )
-            logger.info("予測モデルの最適化価格計算")
+            logger.info("構築した予測モデルを用いた最適化価格計算")
             optimizer = Optimizer(
                 model_name=use_model_name, algo_name=algo_name, data_param=data_param
             )
             optimizer.run(**ALGO_CONFIG[algo_name])
+
+            # 最適化結果を格納
             result_dict["obj"] = {
                 "obj_true_price_true": algorithm.result.objective,
                 "obj_hat_price_hat": optimizer.result.objective,
@@ -265,16 +290,18 @@ if __name__ == "__main__":
             result_summary["std (mape test)"] = np.std(
                 [r["pred"]["mape"]["test"]["mean"] for r in results]
             )
-
-            json_name = f"./result_{noise_variance}_{use_predictor_name}.json"
+            # jsonで保存
+            json_name = (
+                RESULT_DIR / "synthetic" / f"result_{noise_variance}_{use_predictor_name}.json"
+            )
             with open(json_name, "w") as fp:
                 json.dump(result_summary, fp)
             result_output[noise_variance] = result_summary
         except NameError:
             pass
 
+    # csvで保存
     import pandas as pd
-
     result_df = pd.DataFrame.from_dict(result_output, orient="index").T
-    result_df.to_csv(f"./result_{use_predictor_name}.csv")
+    result_df.to_csv(RESULT_DIR / "synthetic" / f"result_{use_predictor_name}.json")
     print(result_df)
