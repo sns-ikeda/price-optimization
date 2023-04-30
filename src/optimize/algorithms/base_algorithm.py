@@ -1,14 +1,16 @@
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import Optional, TypeVar
 
 from src.optimize.result import OptResult
+
+Model = TypeVar("Model")
 
 
 class BaseAlgorithm(metaclass=ABCMeta):
     """アルゴリズムの抽象基底クラス"""
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self, model: Model):
+        self.model: Model = model
         self.result: Optional[OptResult] = None
 
     @abstractmethod

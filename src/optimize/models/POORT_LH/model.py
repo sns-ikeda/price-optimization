@@ -56,7 +56,9 @@ class Variable:
             self.q[m] = pulp.LpVariable(f"q[{m}]", cat=pulp.LpContinuous)
             for k in self.index_set.K:
                 if self.relax:
-                    self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", lowBound=0, upBound=1, cat=pulp.LpContinuous)
+                    self.x[m, k] = pulp.LpVariable(
+                        f"x[{m}_{k}]", lowBound=0, upBound=1, cat=pulp.LpContinuous
+                    )
                 else:
                     self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
                 self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous)
