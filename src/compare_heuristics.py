@@ -18,7 +18,7 @@ if __name__ == "__main__":
     true_predictor_name = "ORT_LH"
     use_model_name = predictor2model[use_predictor_name]
     true_model_name = predictor2model[true_predictor_name]
-    algo_names = ["solver_naive", "milo_relax"]
+    algo_names = ["solver_naive", "milo_relax", "coord_descent"]
 
     num_iteration = 3
     num_of_items_list = [5]
