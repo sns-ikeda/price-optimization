@@ -10,4 +10,6 @@ multi_start_local_search:
   num_multi_start: 3
   seed: 0
 milo_relax:
+  solver: "gurobi"
+  TimeLimit: 3600
   num_iteration: 10

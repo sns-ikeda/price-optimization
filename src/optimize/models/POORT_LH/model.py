@@ -38,9 +38,10 @@ class Constant:
 
 
 class Variable:
-    def __init__(self, index_set: IndexSet, constant: Constant):
+    def __init__(self, index_set: IndexSet, constant: Constant, relax: bool):
         self.index_set = index_set
         self.constant = constant
+        self.relax = relax
         self.p: dict[str, pulp.LpVariable] = dict()
         self.q: dict[str, pulp.LpVariable] = dict()
         self.u: dict[tuple[str, int], pulp.LpVariable] = dict()
@@ -54,14 +55,22 @@ class Variable:
             self.p[m] = pulp.LpVariable(f"p[{m}]", cat=pulp.LpContinuous)
             self.q[m] = pulp.LpVariable(f"q[{m}]", cat=pulp.LpContinuous)
             for k in self.index_set.K:
-                self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
+                if self.relax:
+                    self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", lowBound=0, upBound=1, cat=pulp.LpContinuous)
+                else:
+                    self.x[m, k] = pulp.LpVariable(f"x[{m}_{k}]", cat=pulp.LpBinary)
                 self.u[m, k] = pulp.LpVariable(f"u[{m}_{k}]", cat=pulp.LpContinuous)
             for t in self.index_set.TL[m]:
-                self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat=pulp.LpBinary)
+                if self.relax:
+                    self.z[m, t] = pulp.LpVariable(
+                        f"z[{m}_{t}]", lowBound=0, upBound=1, cat=pulp.LpContinuous
+                    )
+                else:
+                    self.z[m, t] = pulp.LpVariable(f"z[{m}_{t}]", cat=pulp.LpBinary)
 
     def to_value(self):
         for attr in self.__dict__.keys():
-            if attr not in ["index_set", "constant"]:
+            if attr not in ["index_set", "constant", "relax"]:
                 for k, v in self.__dict__[attr].items():
                     self.__dict__[attr][k] = v.value()
 
@@ -193,7 +202,13 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
     variable: Variable
     problem: pulp.LpProblem
 
-    def __init__(self, index_set: IndexSet, constant: Constant, x: Optional[dict[str, int]] = None):
+    def __init__(
+        self,
+        index_set: IndexSet,
+        constant: Constant,
+        x: Optional[dict[str, int]] = None,
+        relax: bool = False,
+    ):
         self.index_set = index_set
         self.constant = constant
         self.x = x
@@ -201,10 +216,11 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         self.result = None
         self.calculation_time = None
         self.objective = None
+        self.relax = relax
 
     def _set_model(self) -> None:
         self.problem = pulp.LpProblem(name=self.name, sense=pulp.LpMaximize)
-        self.variable = Variable(self.index_set, self.constant)
+        self.variable = Variable(self.index_set, self.constant, self.relax)
         self.set_objective_function()
         self.set_constraints()
 
@@ -234,10 +250,12 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
 
         if write_lp:
             self.write_lp()
+
         # 求解
         start = time.time()
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
+
         # 結果の格納
         self.objective = self.problem.objective.value()
         self.variable.to_value()
