@@ -19,13 +19,16 @@ class MiloRelax(BaseSearchAlgorithm):
         model: Model,
         solver: str = "Cbc",
         TimeLimit: Optional[int] = None,
-        num_iteration: int = 10,
+        num_iteration: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(model)
         self.solver = solver
         self.TimeLimit = TimeLimit
-        self.num_iteration = num_iteration
+        if num_iteration is None:
+            self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
+        else:
+            self.num_iteration = num_iteration
         self._result = None
 
     def run(self) -> None:
