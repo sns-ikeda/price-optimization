@@ -34,11 +34,12 @@ class BaseSearchAlgorithm(BaseAlgorithm):
         phi = self.model.constant.P
         g = self.model.constant.g
         M = self.model.index_set.M
+        K = self.model.index_set.K
         D = self.model.index_set.D
         TL = self.model.index_set.TL
 
         # xの値が1となるmとk
-        mk_x: dict[str, int] = {mk[0]: mk[1] for mk, value in x.items() if value >= 0.99}
+        mk_x: dict[str, int] = {m: k for m in M for k in K if x[m, k] >= 0.99}
         assert len(mk_x) == len(M)
 
         for m in M:
@@ -70,12 +71,17 @@ class BaseSearchAlgorithm(BaseAlgorithm):
 
     def calc_obj(self, x: dict[tuple[str, int], int], z: dict[tuple[str, int], int]) -> float:
         """x, zから目的関数を計算"""
+        M = self.model.index_set.M
+        K = self.model.index_set.K
+        TL = self.model.index_set.TL
+
         # xの値が1となるmとk
-        mk_x = {mk[0]: mk[1] for mk, value in x.items() if value >= 0.99}
+        mk_x: dict[str, int] = {m: k for m in M for k in K if x[m, k] >= 0.99}
 
         # zの値が1となるmとt
-        mt_z = {mt[0]: mt[1] for mt, value in z.items() if value >= 0.99}
-        assert len(mt_z) == len(mk_x)
+        mt_z: dict[str, int] = {m: t for m in M for t in TL[m] if z[m, t] >= 0.99}
+        assert len(mt_z) == len(mk_x) == len(M)
+        assert mk_x.keys() == mt_z.keys()
 
         P = self.model.constant.P
         beta = self.model.constant.beta

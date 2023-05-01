@@ -15,3 +15,5 @@ milo_relax:
   num_iteration: 10
 coord_descent:
   num_iteration: 10
+  solver: "gurobi"
+  TimeLimit: 3600
