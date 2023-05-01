@@ -19,13 +19,16 @@ class CoordinateDescent(BaseSearchAlgorithm):
         model: Model,
         solver: str = "Cbc",
         TimeLimit: Optional[int] = None,
-        num_iteration: int = 10,
+        num_iteration: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(model)
         self.solver = solver
         self.TimeLimit = TimeLimit
-        self.num_iteration = num_iteration
+        if num_iteration is None:
+            self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
+        else:
+            self.num_iteration = num_iteration
         self.result = None
         self.xs = []
 
@@ -33,6 +36,8 @@ class CoordinateDescent(BaseSearchAlgorithm):
         """緩和問題のxの値に基づいてランダムサンプリングして丸め込む"""
         M = self.model.index_set.M
         K = self.model.index_set.K
+        best_obj = 0
+        opt_prices = dict()
 
         start = time.time()
         for i in range(self.num_iteration):
@@ -48,15 +53,22 @@ class CoordinateDescent(BaseSearchAlgorithm):
                         x_init[m, k] = 0
 
             # 商品の価格を1つずつ最適化
-            self.coordinate_descent(x_init)
+            _best_obj, _opt_prices = self.coordinate_descent(x_init)
+            if _best_obj > best_obj:
+                best_obj = _best_obj
+                opt_prices = _opt_prices
 
-            logger.info(f"num_iteration: {i}, best_obj: {self.result.objective}")
+            logger.info(f"num_iteration: {i}, _best_obj: {_best_obj}, best_obj: {best_obj}")
         elapsed_time = time.time() - start
 
-        # 最終的な計算時間などを格納
-        self.result.calculation_time = elapsed_time
-        self.result.index_set = self.model.index_set
-        self.result.constant = self.model.constant
+        # 最終的な結果を格納
+        self.result = OptResult(
+            calculation_time=elapsed_time,
+            objective=best_obj,
+            opt_prices=opt_prices,
+            index_set=self.model.index_set,
+            constant=self.model.constant,
+        )
 
     def coordinate_descent(self, x_init: dict[tuple[str, int], int]) -> None:
         """初期解から商品価格を1つずつ最適化"""
@@ -66,27 +78,20 @@ class CoordinateDescent(BaseSearchAlgorithm):
         z_init = self.calc_z(x=x_init)
         best_obj = self.calc_obj(x=x_init, z=z_init)
         best_x = x_init.copy()
+
+        np.random.shuffle(M)
         for m in M:
             # 商品mのKパターンの価格を試す
+            x_m = np.zeros((len(K),))
             for i, _ in enumerate(K):
-                x_m = dict()
-                for k in K:
-                    if k == i:
-                        x_m[m, k] = 1
-                    else:
-                        x_m[m, k] = 0
-                assert sum(x_m.values()) == 1
+                x_m[i] = 1
                 x = best_x.copy()
-                x.update(x_m)
+                x.update({(m, k): x_m[k] for k in range(len(K))})
                 z = self.calc_z(x=x)
                 obj = self.calc_obj(x=x, z=z)
                 if obj > best_obj:
                     best_obj = obj
                     best_x = x
-            logger.info(f"product: {m}, obj: {obj}, best_obj: {best_obj}, x: {x}")
+            logger.info(f"product: {m}, best_obj_m: {best_obj}")
         opt_prices = get_opt_prices(x=best_x, P=self.model.constant.P)
-        self.result = OptResult(
-            calculation_time=0,
-            objective=best_obj,
-            opt_prices=opt_prices,
-        )
+        return best_obj, opt_prices
