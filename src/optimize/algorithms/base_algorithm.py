@@ -46,11 +46,9 @@ class BaseSearchAlgorithm(BaseAlgorithm):
             t = 0
             while True:
                 linear_sum = 0
-                for mp in M:
-                    k = mk_x[mp]
-                    linear_sum += a[m, mp, t] * phi[mp, k]
-                for d in D[m]:
-                    linear_sum += a[m, d, t] * g[m, d]
+                linear_sum_m = sum(a[m, mp, t] * phi[mp, mk_x[mp]] for mp in M)
+                linear_sum_d = sum(a[m, d, t] * g[m, d] for d in D[m])
+                linear_sum = linear_sum_m + linear_sum_d
                 if linear_sum < b[m, t]:
                     # 左に分岐
                     t = t * 2 + 1
@@ -62,11 +60,7 @@ class BaseSearchAlgorithm(BaseAlgorithm):
                 if t > 1000:
                     raise Exception("Infinite Loop Error")
             mt_z[m] = t
-            for t in TL[m]:
-                if t == mt_z[m]:
-                    z[m, t] = 1
-                else:
-                    z[m, t] = 0
+            z.update({(m, t): 1 if t == mt_z[m] else 0 for t in TL[m]})
         return z
 
     def calc_obj(self, x: dict[tuple[str, int], int], z: dict[tuple[str, int], int]) -> float:
