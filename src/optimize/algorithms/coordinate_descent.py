@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import math
 from typing import Optional, TypeVar
 
 import numpy as np
@@ -26,7 +27,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
         self.solver = solver
         self.TimeLimit = TimeLimit
         if num_iteration is None:
-            self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
+            self.num_iteration = 5 * math.ceil(math.log(len(model.index_set.M))) * len(model.index_set.K)
         else:
             self.num_iteration = num_iteration
         self.result = None
@@ -92,6 +93,6 @@ class CoordinateDescent(BaseSearchAlgorithm):
                 if obj > best_obj:
                     best_obj = obj
                     best_x = x
-            logger.info(f"product: {m}, best_obj_m: {best_obj}")
+            # logger.info(f"product: {m}, best_obj_m: {best_obj}")
         opt_prices = get_opt_prices(x=best_x, P=self.model.constant.P)
         return best_obj, opt_prices

@@ -12,8 +12,8 @@ multi_start_local_search:
 milo_relax:
   solver: "gurobi"
   TimeLimit: 3600
-  num_iteration: 10
+  # num_iteration: 10
 coord_descent:
-  num_iteration: 10
+  # num_iteration: 10
   solver: "gurobi"
   TimeLimit: 3600
