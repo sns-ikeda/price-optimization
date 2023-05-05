@@ -142,12 +142,12 @@ def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Cons
             np.random.seed(base_seed + int(m) + d)
             g[m, d] = round(np.random.rand(), 3)
     constant = Constant(beta=beta, beta0=beta0, epsilon=epsilon, a=a, b=b, g=g, P=P, prices=prices)
-    logger.info(f"D: {D}")
-    logger.info(f"beta: {beta}")
-    logger.info(f"beta0: {beta0}")
-    logger.info(f"g: {g}")
-    logger.info(f"a: {a}")
-    logger.info(f"b: {b}")
+    # logger.info(f"D: {D}")
+    # logger.info(f"beta: {beta}")
+    # logger.info(f"beta0: {beta0}")
+    # logger.info(f"g: {g}")
+    # logger.info(f"a: {a}")
+    # logger.info(f"b: {b}")
     return index_set, constant
 
 
