@@ -102,27 +102,27 @@ def average_pred_result(pred_result_dict: dict[str, dict[str, dict[str, float]]]
 
 
 if __name__ == "__main__":
-    use_predictor_name = "linear_regression"
-    # use_predictor_name = "ORT_LH"
-    true_predictor_name = "linear_regression"
-    # true_predictor_name = "ORT_LH"
+    # use_predictor_name = "linear_regression"
+    use_predictor_name = "ORT_LH"
+    # true_predictor_name = "linear_regression"
+    true_predictor_name = "ORT_LH"
     use_model_name = predictor2model[use_predictor_name]
     true_model_name = predictor2model[true_predictor_name]
     algo_name = "solver_naive"
 
-    num_iteration = 1
+    num_iteration = 10
     data_size = 100
     test_data_size = 3000
     noise_variances = [0]
     # noise_variances = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-    num_of_items = 3
+    num_of_items = 20
     num_of_prices = 5
-    depth_of_trees = 2
+    depth_of_trees = 4
     price_min = 0.8
     price_max = 1.0
     num_of_g = 2 * num_of_items * 0
     tune = False
-    calc_time_only = False
+    calc_time_only = True
 
     result_output = dict()
     for noise_variance in noise_variances:
