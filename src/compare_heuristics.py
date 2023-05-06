@@ -20,15 +20,13 @@ if __name__ == "__main__":
     true_model_name = predictor2model[true_predictor_name]
     algo_names = ["solver_naive", "milo_relax", "coord_descent"]
 
-    num_iteration = 3
+    num_iteration = 10
     num_of_items_list = [5]
     num_of_prices = 5
     depth_of_trees = 3
     base_price = 5
     price_min = 0.8
     price_max = 1.0
-    tune = False
-    calc_time_only = False
 
     result_output = dict()
     for num_of_items in num_of_items_list:
@@ -72,15 +70,18 @@ if __name__ == "__main__":
             result_summary[algo_name]["mean (calculation_time)"] = np.mean(
                 [r[algo_name]["calculation_time"] for r in results]
             )
-            result_summary[algo_name]["mean (obj)"] = np.mean(
-                [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
-            )
             result_summary[algo_name]["std (calculation_time)"] = np.std(
                 [r[algo_name]["calculation_time"] for r in results]
             )
-            result_summary[algo_name]["std (obj)"] = np.std(
-                [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
-            )
+            try:
+                result_summary[algo_name]["mean (obj)"] = np.mean(
+                    [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
+                )
+                result_summary[algo_name]["std (obj)"] = np.std(
+                    [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
+                )
+            except KeyError:
+                pass
             json_name = (
                 RESULT_DIR
                 / "synthetic"
