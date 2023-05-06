@@ -24,16 +24,16 @@ $ make iai
     - データ処理の設定：`src/data_preprocess/data_config.yaml`
     - アルゴリズムの設定：`src/optimize/algorithms/algo_config.yaml`
 ### execution
-- 下記コマンドにてシミュレーションを実行
-
-人工データの場合：
-```shell
-$ make artificial
-```
-実データの場合：  
+- 下記コマンドにて人工データによるシミュレーションを実行  
 （ライセンスファイルiai.licが実行するPCのどこかに置かれている必要がある）
+
+厳密モデル検証の場合：  
 ```shell
-$ make realworld
+$ make compare_exact_models
+```
+ヒューリスティクス検証の場合：  
+```shell
+$ make compare_heuristics
 ```
 （生成されたファイルを削除する場合は下記コマンドを実行）
 ```shell

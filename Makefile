@@ -1,4 +1,4 @@
-.PHONY: env iai pre-commit lint format clean test synthetic realworld tune_params data_preprocess train optimize
+.PHONY: env iai pre-commit lint format clean test compare_exact_models compare_heuristics data_preprocess train optimize
 export PYTHONPATH := $(PWD)
 
 env:
@@ -33,11 +33,11 @@ clean:
 test:
 	poetry run pytest .
 
-synthetic:
-	poetry run python src/synthetic.py
+compare_exact_models:
+	poetry run python src/compare_exact_models.py
 
-realworld:
-	poetry run python src/main.py --data_type realworld
+compare_heuristics:
+	poetry run python src/compare_heuristics.py
 
 data_preprocess:
 	poetry run python src/data_preprocess/preprocessor.py
