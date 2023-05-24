@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import math
+import random
 import time
 from typing import Optional, TypeVar
 
@@ -28,7 +28,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
         self.TimeLimit = TimeLimit
         if num_iteration is None:
             self.num_iteration = (
-                5 * math.ceil(math.log(len(model.index_set.M))) * len(model.index_set.K)
+                len(model.index_set.M) * len(model.index_set.K)
             )
         else:
             self.num_iteration = num_iteration
@@ -45,15 +45,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
         start = time.time()
         for i in range(self.num_iteration):
             # ランダムに初期解を作成
-            x_init = dict()
-            for m in M:
-                np.random.seed(int(m) + (i + 100))
-                selected_k = np.random.choice(K)
-                for k in K:
-                    if k == selected_k:
-                        x_init[m, k] = 1
-                    else:
-                        x_init[m, k] = 0
+            x_init = self.generate_x_init(M=M, K=K, seed=i)
 
             # 商品の価格を1つずつ最適化
             _best_obj, _opt_prices = self.coordinate_descent(x_init)
@@ -73,8 +65,18 @@ class CoordinateDescent(BaseSearchAlgorithm):
             constant=self.model.constant,
         )
 
-    def coordinate_descent(self, x_init: dict[tuple[str, int], int]) -> None:
-        """初期解から商品価格を1つずつ最適化"""
+    @staticmethod
+    def generate_x_init(M: list[str], K: list[int], seed: int = 0) -> dict[tuple[str, int], int]:
+        """初期解を生成"""
+        x_init = dict()
+        for m in M:
+            np.random.seed(int(m) + (seed + 100))
+            selected_k = np.random.choice(K)
+            x_init.update({(m, k): int(k == selected_k) for k in K})
+        return x_init
+
+    def coordinate_descent(self, x_init: dict[tuple[str, int], int], threshold: int = 10) -> None:
+        """商品をランダムに1つ選び最適化"""
         M = self.model.index_set.M
         K = self.model.index_set.K
 
@@ -82,19 +84,32 @@ class CoordinateDescent(BaseSearchAlgorithm):
         best_obj = self.calc_obj(x=x_init, z=z_init)
         best_x = x_init.copy()
 
-        np.random.shuffle(M)
-        for m in M:
+        break_count, total_count = 0, 0
+        while True:
+            total_count += 1
+            m = random.choice(M)
             # 商品mのKパターンの価格を試す
             x_m = np.zeros((len(K),))
-            for i, _ in enumerate(K):
-                x_m[i] = 1
+            objs = []
+            for k in K:
+                x_m[k] = 1
                 x = best_x.copy()
-                x.update({(m, k): x_m[k] for k in range(len(K))})
+                x.update({(m, k): x_m[k] for k in K})
                 z = self.calc_z(x=x)
                 obj = self.calc_obj(x=x, z=z)
+                objs.append(obj)
                 if obj > best_obj:
                     best_obj = obj
                     best_x = x
-            # logger.info(f"product: {m}, best_obj_m: {best_obj}")
+                    break_count = 0
+            # logger.info(f"best_obj: {best_obj}, objs: {objs}")
+            if best_obj >= max(objs):
+                break_count += 1
+
+            if break_count >= threshold:
+                # logger.info(f"break_count: {break_count}, total_count: {total_count}")
+                break
+            logger.info(f"product: {m}, best_obj_m: {best_obj}")
         opt_prices = get_opt_prices(x=best_x, P=self.model.constant.P)
         return best_obj, opt_prices
+
