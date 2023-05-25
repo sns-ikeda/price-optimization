@@ -15,7 +15,17 @@ from src.utils.paths import ALGO_DIR
 Model = TypeVar("Model")
 
 
-def calc_z(x: dict[tuple[str, int], int], a, b, phi, g, M, K, D, TL) -> dict[tuple[str, int], int]:
+def calc_z(
+    x: dict[tuple[str, int], int],
+    a: dict[tuple[str, str, int], float],
+    b: dict[tuple[str, int], float],
+    phi: dict[tuple[str, int], float],
+    g: dict[tuple[str, str], float],
+    M: list[str],
+    K: list[int],
+    D: dict[str, list[str]],
+    TL: dict[str, list[int]],
+) -> dict[tuple[str, int], int]:
     """xからzを算出"""
     z, mt_z = dict(), dict()
     # xの値が1となるmとk
@@ -43,7 +53,20 @@ def calc_z(x: dict[tuple[str, int], int], a, b, phi, g, M, K, D, TL) -> dict[tup
         z.update({(m, t): 1 if t == mt_z[m] else 0 for t in TL[m]})
     return z
 
-def calc_obj(x: dict[tuple[str, int], int], z: dict[tuple[str, int], int], M, K, TL, P, beta, beta0, phi, g, D) -> float:
+
+def calc_obj(
+    x: dict[tuple[str, int], int],
+    z: dict[tuple[str, int], int],
+    M: list[str],
+    K: list[int],
+    TL: dict[str, list[int]],
+    P: dict[tuple[str, int], float],
+    beta: dict[tuple[str, str, int], float],
+    beta0: dict[tuple[str, int], float],
+    phi: dict[tuple[str, int], float],
+    g: dict[tuple[str, str], float],
+    D: dict[str, list[str]],
+) -> float:
     """x, zから目的関数を計算"""
 
     # xの値が1となるmとk
@@ -65,6 +88,7 @@ def calc_obj(x: dict[tuple[str, int], int], z: dict[tuple[str, int], int], M, K,
     )
     return np.dot(p, q)
 
+
 def get_opt_prices(
     x: dict[tuple[str, int], float], P: dict[tuple[str, int], float]
 ) -> dict[str, float]:
@@ -78,6 +102,7 @@ def get_opt_prices(
     opt_prices = dict(sorted(opt_prices.items()))
     return opt_prices
 
+
 def generate_x_init(M: list[str], K: list[int], seed: int = 0) -> dict[tuple[str, int], int]:
     """初期解を生成"""
     x_init = dict()
@@ -87,10 +112,27 @@ def generate_x_init(M: list[str], K: list[int], seed: int = 0) -> dict[tuple[str
         x_init.update({(m, k): int(k == selected_k) for k in K})
     return x_init
 
-def coordinate_descent(M, K, P, x_init: dict[tuple[str, int], int], a, b, phi, g, D, TL, beta, beta0, threshold: int = 10) -> None:
+
+def coordinate_descent(
+    M: list[str],
+    K: list[int],
+    P: dict[tuple[str, int], float],
+    x_init: dict[tuple[str, int], int],
+    a: dict[tuple[str, str, int], float],
+    b: dict[tuple[str, int], float],
+    phi: dict[tuple[str, int], float],
+    g: dict[tuple[str, str], float],
+    D: dict[str, list[str]],
+    TL: dict[str, list[int]],
+    beta: dict[tuple[str, str, int], float],
+    beta0: dict[tuple[str, int], float],
+    threshold: int = 10,
+) -> None:
     """商品をランダムに1つ選び最適化"""
     z_init = calc_z(x=x_init, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
-    best_obj = calc_obj(x=x_init, z=z_init, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D)
+    best_obj = calc_obj(
+        x=x_init, z=z_init, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D
+    )
     best_x = x_init.copy()
 
     break_count, total_count = 0, 0
@@ -104,7 +146,9 @@ def coordinate_descent(M, K, P, x_init: dict[tuple[str, int], int], a, b, phi, g
             x = best_x.copy()
             x.update({(m, k): x_m[k] for k in K})
             z = calc_z(x=x, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
-            obj = calc_obj(x=x, z=z, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D)
+            obj = calc_obj(
+                x=x, z=z, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D
+            )
             if obj > best_obj:
                 best_obj = obj
                 best_x = x
@@ -118,6 +162,7 @@ def coordinate_descent(M, K, P, x_init: dict[tuple[str, int], int], a, b, phi, g
         # logger.info(f"product: {m}, best_obj_m: {best_obj}")
     opt_prices = get_opt_prices(x=best_x, P=P)
     return best_obj, opt_prices
+
 
 class CoordinateDescent(BaseSearchAlgorithm):
     def __init__(
@@ -163,12 +208,40 @@ class CoordinateDescent(BaseSearchAlgorithm):
             # 商品の価格を1つずつ最適化
             if use_julia:
                 import julia
+
                 julia.install()
                 from julia import Main
-                Main.include(str(ALGO_DIR / 'coordinate_descent.jl'))
-                _best_obj, _opt_prices = Main.coordinate_descent(M=M, K=K, P=P, x_init=x_init, a=a, b=b, phi=phi, g=g, D=D, TL=TL, beta=beta, beta0=beta0)
+
+                Main.include(str(ALGO_DIR / "coordinate_descent.jl"))
+                _best_obj, _opt_prices = Main.coordinate_descent(
+                    M=M,
+                    K=K,
+                    P=P,
+                    x_init=x_init,
+                    a=a,
+                    b=b,
+                    phi=phi,
+                    g=g,
+                    D=D,
+                    TL=TL,
+                    beta=beta,
+                    beta0=beta0,
+                )
             else:
-                _best_obj, _opt_prices = coordinate_descent(M=M, K=K, P=P, x_init=x_init, a=a, b=b, phi=phi, g=g, D=D, TL=TL, beta=beta, beta0=beta0)
+                _best_obj, _opt_prices = coordinate_descent(
+                    M=M,
+                    K=K,
+                    P=P,
+                    x_init=x_init,
+                    a=a,
+                    b=b,
+                    phi=phi,
+                    g=g,
+                    D=D,
+                    TL=TL,
+                    beta=beta,
+                    beta0=beta0,
+                )
             if _best_obj > best_obj:
                 best_obj = _best_obj
                 opt_prices = _opt_prices
