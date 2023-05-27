@@ -35,7 +35,6 @@ def calc_z(
     for m in M:
         t = 0
         while True:
-            linear_sum = 0
             linear_sum_m = sum(a[m, mp, t] * phi[mp, mk_x[mp]] for mp in M)
             linear_sum_d = sum(a[m, d, t] * g[m, d] for d in D[m])
             linear_sum = linear_sum_m + linear_sum_d
@@ -51,7 +50,7 @@ def calc_z(
                 raise Exception("Infinite Loop Error")
         mt_z[m] = t
         z.update({(m, t): 1 if t == mt_z[m] else 0 for t in TL[m]})
-    return z
+    return z, mk_x, mt_z
 
 
 def calc_obj(
@@ -66,14 +65,11 @@ def calc_obj(
     phi: dict[tuple[str, int], float],
     g: dict[tuple[str, str], float],
     D: dict[str, list[str]],
+    mk_x: dict[str, int],
+    mt_z: dict[str, int],
 ) -> float:
     """x, zから目的関数を計算"""
 
-    # xの値が1となるmとk
-    mk_x: dict[str, int] = {m: k for m in M for k in K if x[m, k] >= 0.99}
-
-    # zの値が1となるmとt
-    mt_z: dict[str, int] = {m: t for m in M for t in TL[m] if z[m, t] >= 0.99}
     assert len(mt_z) == len(mk_x) == len(M)
     assert mk_x.keys() == mt_z.keys()
 
@@ -127,39 +123,95 @@ def coordinate_descent(
     beta: dict[tuple[str, str, int], float],
     beta0: dict[tuple[str, int], float],
     threshold: int = 10,
+    randomized: bool = False,
+    num_iter: int = 1,
 ) -> None:
     """商品をランダムに1つ選び最適化"""
-    z_init = calc_z(x=x_init, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
+    z_init, mk_x_init, mt_z_init = calc_z(x=x_init, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
     best_obj = calc_obj(
-        x=x_init, z=z_init, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D
+        x=x_init,
+        z=z_init,
+        M=M,
+        K=K,
+        TL=TL,
+        P=P,
+        beta=beta,
+        beta0=beta0,
+        phi=phi,
+        g=g,
+        D=D,
+        mk_x=mk_x_init,
+        mt_z=mt_z_init,
     )
     best_x = x_init.copy()
+    if randomized:
+        break_count, total_count = 0, 0
+        while True:
+            total_count += 1
+            m = random.choice(M)
+            # 商品mのKパターンの価格を試す
+            x_m = np.zeros((len(K),))
+            for k in K:
+                x_m[k] = 1
+                x = best_x.copy()
+                x.update({(m, k): x_m[k] for k in K})
+                z, mk_x, mt_z = calc_z(x=x, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
+                obj = calc_obj(
+                    x=x,
+                    z=z,
+                    M=M,
+                    K=K,
+                    TL=TL,
+                    P=P,
+                    beta=beta,
+                    beta0=beta0,
+                    phi=phi,
+                    g=g,
+                    D=D,
+                    mk_x=mk_x,
+                    mt_z=mt_z,
+                )
+                if obj > best_obj:
+                    best_obj = obj
+                    best_x = x
+                    break_count = 0
+            # logger.info(f"best_obj: {best_obj}, break_count: {break_count}, total_count: {total_count}")
+            break_count += 1
 
-    break_count, total_count = 0, 0
-    while True:
-        total_count += 1
-        m = random.choice(M)
-        # 商品mのKパターンの価格を試す
-        x_m = np.zeros((len(K),))
-        for k in K:
-            x_m[k] = 1
-            x = best_x.copy()
-            x.update({(m, k): x_m[k] for k in K})
-            z = calc_z(x=x, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
-            obj = calc_obj(
-                x=x, z=z, M=M, K=K, TL=TL, P=P, beta=beta, beta0=beta0, phi=phi, g=g, D=D
-            )
-            if obj > best_obj:
-                best_obj = obj
-                best_x = x
-                break_count = 0
-        # logger.info(f"best_obj: {best_obj}, break_count: {break_count}, total_count: {total_count}")
-        break_count += 1
-
-        if break_count >= threshold:
-            # logger.info(f"break_count: {break_count}, total_count: {total_count}")
-            break
-        # logger.info(f"product: {m}, best_obj_m: {best_obj}")
+            if break_count >= threshold:
+                # logger.info(f"break_count: {break_count}, total_count: {total_count}")
+                break
+            # logger.info(f"product: {m}, best_obj_m: {best_obj}")
+    else:
+        for i in range(num_iter):
+            np.random.seed(i)
+            np.random.shuffle(M)
+            for m in M:
+                # 商品mのKパターンの価格を試す
+                x_m = np.zeros((len(K),))
+                for i, _ in enumerate(K):
+                    x_m[i] = 1
+                    x = best_x.copy()
+                    x.update({(m, k): x_m[k] for k in range(len(K))})
+                    z, mk_x, mt_z = calc_z(x=x, a=a, b=b, phi=phi, g=g, M=M, K=K, D=D, TL=TL)
+                    obj = calc_obj(
+                        x=x,
+                        z=z,
+                        M=M,
+                        K=K,
+                        TL=TL,
+                        P=P,
+                        beta=beta,
+                        beta0=beta0,
+                        phi=phi,
+                        g=g,
+                        D=D,
+                        mk_x=mk_x,
+                        mt_z=mt_z,
+                    )
+                    if obj > best_obj:
+                        best_obj = obj
+                        best_x = x
     opt_prices = get_opt_prices(x=best_x, P=P)
     return best_obj, opt_prices
 
