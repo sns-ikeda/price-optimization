@@ -31,24 +31,26 @@ def calc_z(
 
     for i, m in enumerate(M):
         t = 0
-        while True:
-            linear_sum_m = np.dot(
-                a_matrix[i, :, t], np.dot(np.multiply(phi_matrix, x_matrix), ones_k)
-            )
-            linear_sum_d = 0
-            for j, _ in enumerate(D[m]):
-                linear_sum_d += a_matrix[i, len(M) + j, t], g_matrix[i, j]
-            linear_sum = linear_sum_m + linear_sum_d
-            if linear_sum < b[m, t]:
-                # 左に分岐
-                t = t * 2 + 1
-            else:
-                # 右に分岐
-                t = t * 2 + 2
-            if t in TL[m]:
-                break
-            if t > 1000:
-                raise Exception("Infinite Loop Error")
+        if len(TL[m]) > 1:
+            while True:
+                linear_sum_m = np.dot(
+                    a_matrix[i, :, t], np.dot(np.multiply(phi_matrix, x_matrix), ones_k)
+                )
+                linear_sum_d = 0
+                for j, _ in enumerate(D[m]):
+                    linear_sum_d += a_matrix[i, len(M) + j, t], g_matrix[i, j]
+                linear_sum = linear_sum_m + linear_sum_d
+
+                if linear_sum < b[m, t]:
+                    # 左に分岐
+                    t = t * 2 + 1
+                else:
+                    # 右に分岐
+                    t = t * 2 + 2
+                if t in TL[m]:
+                    break
+                if t > 1000:
+                    raise Exception("Infinite Loop Error")
         z_matrix[i, t - min(TL[m])] = 1
     return z_matrix
 
