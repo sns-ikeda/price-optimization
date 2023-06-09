@@ -123,8 +123,7 @@ def coordinate_descent(
     beta_matrix: np.ndarray,
     beta0_matrix: np.ndarray,
     threshold: int = 10,
-    randomized: bool = True,
-    num_iter: int = 1,
+    randomized: bool = False,
 ) -> None:
     """商品をランダムに1つ選び最適化"""
     z_init_matrix = calc_z(
@@ -151,8 +150,10 @@ def coordinate_descent(
         beta0_matrix=beta0_matrix,
     )
     best_x_matrix = x_init_matrix.copy()
+
+    # randomized coordinate descent
+    break_count, total_count = 0, 0
     if randomized:
-        break_count, total_count = 0, 0
         while True:
             total_count += 1
             m = random.choice(M)
@@ -196,13 +197,15 @@ def coordinate_descent(
                 # logger.info(f"break_count: {break_count}, total_count: {total_count}")
                 break
             # logger.info(f"product: {m}, best_obj_m: {best_obj}")
+
+    # cyclic coordinate descent
     else:
-        for i in range(num_iter):
-            np.random.seed(i)
-            np.random.shuffle(M)
-            for m in M:
+        while True:
+            total_count += 1
+            M_shuffled = random.sample(M, len(M))
+            for m in M_shuffled:
                 # 商品mのKパターンの価格を試す
-                for i, _ in enumerate(K):
+                for k in K:
                     x_m = np.zeros((len(K),))
                     x_m[k] = 1
                     x_matrix = best_x_matrix.copy()
@@ -233,6 +236,12 @@ def coordinate_descent(
                     if obj > best_obj:
                         best_obj = obj
                         best_x_matrix = x_matrix
+                        break_count = 0
+                break_count += 1
+                if break_count >= threshold:
+                    break
+            if break_count >= threshold:
+                break
 
     opt_prices = get_opt_prices(x_matrix=best_x_matrix, P=P, M=M, K=K)
     return best_obj, opt_prices
@@ -251,7 +260,8 @@ class CoordinateDescent(BaseSearchAlgorithm):
         self.solver = solver
         self.TimeLimit = TimeLimit
         if num_iteration is None:
-            self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
+            # self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
+            self.num_iteration = 10
         else:
             self.num_iteration = num_iteration
         self.result = None
