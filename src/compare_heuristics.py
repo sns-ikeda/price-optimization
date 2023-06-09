@@ -18,7 +18,7 @@ if __name__ == "__main__":
     true_predictor_name = "ORT_LH"
     use_model_name = predictor2model[use_predictor_name]
     true_model_name = predictor2model[true_predictor_name]
-    algo_names = ["solver_naive", "milo_relax", "coord_descent"]
+    algo_names = ["solver_naive", "coord_descent"]
 
     num_iteration = 10
     num_of_items_list = [5]
@@ -73,11 +73,15 @@ if __name__ == "__main__":
             result_summary[algo_name]["std (calculation_time)"] = np.std(
                 [r[algo_name]["calculation_time"] for r in results]
             )
+            result_summary[algo_name]["mean (obj)"] = np.mean(
+                [r[algo_name]["obj"] for r in results]
+            )
+            result_summary[algo_name]["std (obj)"] = np.std([r[algo_name]["obj"] for r in results])
             try:
-                result_summary[algo_name]["mean (obj)"] = np.mean(
+                result_summary[algo_name]["mean (SQI)"] = np.mean(
                     [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
                 )
-                result_summary[algo_name]["std (obj)"] = np.std(
+                result_summary[algo_name]["std (SQI)"] = np.std(
                     [r[algo_name]["obj"] / r["solver_naive"]["obj"] for r in results]
                 )
             except KeyError:
