@@ -136,12 +136,14 @@ if __name__ == "__main__":
                     price_min=price_min,
                     price_max=price_max,
                     base_quantity=300,
-                    seed=i*100,
+                    seed=i * 100,
                 )
                 # 真のモデル生成
                 result_dict = dict()
                 logger.info("真のモデルのパラメータ")
-                model_input = Optimizer.make_model_input(model_name=true_model_name, data_param=params)
+                model_input = Optimizer.make_model_input(
+                    model_name=true_model_name, data_param=params
+                )
                 index_set, constant = model_input.index_set, model_input.constant
 
                 # 真のモデルに対する最適価格の計算
@@ -263,7 +265,9 @@ if __name__ == "__main__":
             result_summary["mean (calculation_time)"] = np.mean(
                 [r["calculation_time"] for r in results]
             )
-            result_summary["std (calculation_time)"] = np.std([r["calculation_time"] for r in results])
+            result_summary["std (calculation_time)"] = np.std(
+                [r["calculation_time"] for r in results]
+            )
             if calc_time_only:
                 json_name = f"./result_d{depth_of_trees}_n{num_of_items}_{use_predictor_name}.json"
                 with open(json_name, "w") as fp:
