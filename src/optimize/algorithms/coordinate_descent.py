@@ -260,8 +260,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
         self.solver = solver
         self.TimeLimit = TimeLimit
         if num_iteration is None:
-            # self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
-            self.num_iteration = 10
+            self.num_iteration = len(model.index_set.M) * len(model.index_set.K)
         else:
             self.num_iteration = num_iteration
         self.result = None
