@@ -152,3 +152,6 @@ dmypy.json
 
 # pickle
 *.pickle
+
+# pdf
+.pdf

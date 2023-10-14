@@ -1,4 +1,4 @@
-repos:
+repos:  # You can also use 'repos' instead of 'repository'
   - repo: https://github.com/pycqa/isort
     rev: 5.9.3
     hooks:
