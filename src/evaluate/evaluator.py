@@ -82,11 +82,6 @@ class Evaluator:
             )
             # 価格候補
             self.result_item.setdefault("price_candidates", dict())[item] = self.item2prices[item]
-        # # 理論値
-        # if len(self.target_cols) <= 3 and len(list(self.item2prices.values())[0]) <= 9:
-        #     theoretical_sales_item, theoretical_opt_prices = self.calc_theoretical_values()
-        #     self.result_item["theoretical_sales"] = theoretical_sales_item
-        #     self.result_item["theoretical_opt_prices"] = theoretical_opt_prices
 
         for metric, result_item in self.result_item.items():
             if metric == "theoretical_opt_prices":

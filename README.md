@@ -20,7 +20,6 @@ $ make iai
 ## How to Run
 ### preparation
 - 以下のyamlファイルにてシミュレーションの設定を行う
-    - データ処理の設定：`src/data_preprocess/data_config.yaml`
     - アルゴリズムの設定：`src/optimize/algorithms/algo_config.yaml`
 ### execution
 - 下記コマンドにて人工データによるシミュレーションを実行  
