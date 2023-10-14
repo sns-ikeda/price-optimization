@@ -145,11 +145,3 @@ def get_item2prices(
         prices = list(np.round(np.linspace(price_min, price_max, num_of_prices), 2))
         item2prices[item] = prices
     return item2prices
-
-
-if __name__ == "__main__":
-    from src.configs import read_config
-
-    config = read_config("config.yaml")["realworld"]
-    dp = DataPreprocessor(config["dataset_name"])
-    dp.run()

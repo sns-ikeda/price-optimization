@@ -1,4 +1,4 @@
-.PHONY: env iai pre-commit lint format clean test compare_exact_models compare_heuristics data_preprocess train optimize
+.PHONY: env iai pre-commit lint format clean test compare_exact_models compare_heuristics
 export PYTHONPATH := $(PWD)
 
 env:
@@ -38,12 +38,3 @@ compare_exact_models:
 
 compare_heuristics:
 	poetry run python src/compare_heuristics.py
-
-data_preprocess:
-	poetry run python src/data_preprocess/preprocessor.py
-
-train:
-	poetry run python src/predict/predictor.py
-
-optimize:
-	poetry run python src/optimize/optimizer.py
