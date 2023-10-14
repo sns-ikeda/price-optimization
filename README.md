@@ -11,7 +11,7 @@
 ```shell
 $ make env
 ```
-- 最適決定木のライブラリ(interpretableai)を初めて利用する場合は，下記コマンドを実行  
+- 最適決定木のライブラリ(interpretableai)を初めて利用する場合は，下記コマンドを実行（interpretableaiのライセンスは別途取得が必要）  
 ```shell
 $ make iai
 ```
@@ -20,7 +20,6 @@ $ make iai
 ## How to Run
 ### preparation
 - 以下のyamlファイルにてシミュレーションの設定を行う
-    - 実験の設定：`src/config.yaml`
     - データ処理の設定：`src/data_preprocess/data_config.yaml`
     - アルゴリズムの設定：`src/optimize/algorithms/algo_config.yaml`
 ### execution

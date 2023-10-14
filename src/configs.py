@@ -6,7 +6,7 @@ from typing import Any
 
 import yaml
 
-from src.utils.paths import ALGO_DIR, DATA_PRE_DIR
+from src.utils.paths import ALGO_DIR
 
 
 def read_config(filepath: Path | str) -> dict[str, Any]:
@@ -35,9 +35,6 @@ class SyntheticConfig:
     predictor_names: list[str]
     algo_names: list[str]
 
-
-# データの設定
-DATA_CONFIG = read_config(DATA_PRE_DIR / "data_config.yaml")
 
 # アルゴリズムの設定
 ALGO_CONFIG = read_config(ALGO_DIR / "algo_config.yaml")
