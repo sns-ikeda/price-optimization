@@ -58,7 +58,7 @@ class RealDataParameter:
 def make_data_params(
     config: SyntheticConfig, data_type: str, **kwargs
 ) -> list[SyntheticDataParameter | RealDataParameter]:
-    """シミュレーションで設定するパラメータの生成"""
+    """Generate data parameters from config"""
     data_params = []
     if data_type == "synthetic":
         for num_of_items in config.num_of_items:

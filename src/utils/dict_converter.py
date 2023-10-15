@@ -9,13 +9,13 @@ import yaml
 
 
 def dict2json(target_dict: dict[Any, Any], save_path: Path) -> None:
-    """辞書をjson形式で保存"""
+    """Save dict as json"""
     with open(save_path, "w") as f:
         json.dump(target_dict, f, indent=4)
 
 
 def dict2yaml(target_dict: dict[Any, Any], save_path: Path) -> None:
-    """辞書をyaml形式で保存"""
+    """Save dict as yaml"""
     with open(save_path, "w") as f:
         yaml.dump(target_dict, f)
 
@@ -23,7 +23,7 @@ def dict2yaml(target_dict: dict[Any, Any], save_path: Path) -> None:
 def dict2df(
     dict_: dict[Any, Any], value_name: str, index_name: str = "num_of_items"
 ) -> pd.DataFrame:
-    """辞書をデータフレームに変換"""
+    """Convert dict to DataFrame"""
     df = (
         pd.DataFrame.from_dict(dict_, orient="index")
         .reset_index()

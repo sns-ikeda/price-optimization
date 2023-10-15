@@ -149,9 +149,9 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
         MIPFocus: int = 0,
         write_lp: bool = False,
     ) -> None:
-        # モデルを構築
+        # set model
         self._set_model()
-        # solverの設定
+        # set solver
         if solver in ["gurobi", "GUROBI", "Gurobi", "grb", "GRB", "Grb"]:
             try:
                 solver = pulp.GUROBI(
@@ -161,11 +161,11 @@ class Model(ObjectiveFunctionMixin, ConstraintsMixin):
                 raise Exception("Set the solver to Cbc because Gurobi is not installed.")
         else:
             solver = pulp.PULP_CBC_CMD(timeLimit=TimeLimit)
-        # 求解
+        # solve
         start = time.time()
         self.problem.solve(solver=solver)
         elapsed_time = time.time() - start
-        # 結果の格納
+        # store results
         self.objective = self.problem.objective.value()
         self.variable.to_value()
         opt_prices = get_opt_prices(x=self.variable.x, P=self.constant.P)

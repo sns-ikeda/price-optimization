@@ -17,7 +17,7 @@ def generate_data(
     df_dict, q_avg_dict = dict(), dict()
     M = list(constant.beta0.keys())
     for m in M:
-        # 外部変数の作成
+        # generate external variables
         external_df = pd.DataFrame()
         external_vals = []
         if constant.g:
@@ -32,7 +32,7 @@ def generate_data(
             external_cols = [f"G_{m}_{d + len(M)}" for d in range(num_external_val)]
             external_df = pd.DataFrame(external_vals, columns=external_cols)
 
-        # 販売数のデータ作成
+        # generate sales
         qs = []
         for prices, external_vals_ in zip_longest(price_candidates, external_vals):
             q = constant.beta0[m]
@@ -45,7 +45,7 @@ def generate_data(
                 pass
             qs.append(round(q, 3))
 
-        # 販売数にノイズ追加
+        # add noise
         q_avg = np.mean(qs)
         q_avg_dict[m] = q_avg
         qs_noise = []

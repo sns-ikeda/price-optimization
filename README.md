@@ -1,4 +1,4 @@
-# Price Optimization
+# Prescriptive Price Optimization Using Oprimal Regression Trees
 
 ## Requirements
 
@@ -6,47 +6,47 @@
 - Poetry: `1.1.13`
 
 ## Setup
-- poetryにて実行環境を構築するため，下記コマンドを実行  
-（poetryがインストールされていない場合は，pipにてインストールされる）
+- To set up the execution environment with poetry, run the command below.
+(If poetry is not installed, it will be installed via pip)
 ```shell
 $ make env
 ```
-- 最適決定木のライブラリ(interpretableai)を初めて利用する場合は，下記コマンドを実行（interpretableaiのライセンスは別途取得が必要）  
+- If you're using the optimal decision tree library (interpretableai) for the first time, run the following command. (A license for interpretableai is required)  
 ```shell
 $ make iai
 ```
-- ライブラリを追加したい場合は `poetry add {hoge}` にて追加する
+- If you want to add a library, use poetry add {hoge} to do so.
 
 ## How to Run
 ### preparation
-- 以下のyamlファイルにてシミュレーションの設定を行う
-    - アルゴリズムの設定：`src/optimize/algorithms/algo_config.yaml`
+- Configure the simulation with the following yaml files:
+  - Algorithm settings: src/optimize/algorithms/algo_config.yaml
 ### execution
-- 下記コマンドにて人工データによるシミュレーションを実行  
-（ライセンスファイルiai.licが実行するPCのどこかに置かれている必要がある）
+- Run the simulation with artificial data using the commands below.  
+（A license file named iai.lic needs to be located somewhere on the executing PC）
 
-厳密モデル検証の場合：  
+For exact model simulation：  
 ```shell
 $ make compare_exact_models
 ```
-ヒューリスティクス検証の場合：  
+For heuristics simulation：  
 ```shell
 $ make compare_heuristics
 ```
-（生成されたファイルを削除する場合は下記コマンドを実行）
+(To remove the generated files, run the command below)
 ```shell
 $ make clean
 ```
 ## Code Formatting
 ### formatting
-- isort, black, flake8によるformattingを実施（Setupの実施が必要）
+- Perform formatting using isort, black, and flake8. (Setup execution is required)
 
 ```shell
 $ make format
 ```
 ### pre-commit
-- commit時に自動で静的解析を行い，pushしてCI/CDを回す前にフォーマットを行う
-- pre-commitをインストール
+- Automatically perform static code analysis during commit and format before pushing to run CI/CD.
+- Install pre-commit:
 ```shell
 $ poetry run install pre-commit
 ```

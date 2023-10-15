@@ -10,7 +10,7 @@ from src.optimize.result import OptResult
 def transform_artificial_results(
     results: list[int, dict[str, dict[str, OptResult]]], attribute: str
 ) -> dict[str, dict[int, list(float)]]:
-    """計算結果を整形"""
+    """Arrange results from synthetic data"""
     transformed_results_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     for result_dict in results:
         for num_of_item, model_result_dict in result_dict.items():
@@ -25,7 +25,7 @@ def transform_artificial_results(
 def average_results_dict(
     results_dict: dict[str, dict[str, dict[int, list[float]]]], attribute: str
 ) -> dict[str, dict[str, dict[int, float]]]:
-    """計算結果を平均"""
+    """Calculate average of results"""
     avg_results_dict = defaultdict(lambda: defaultdict(dict))
     for model, algo_result_dict in results_dict.items():
         for algo, noi_result_dict in algo_result_dict.items():

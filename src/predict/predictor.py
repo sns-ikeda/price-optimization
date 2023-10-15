@@ -51,7 +51,7 @@ class PredictorMaker:
     def run(
         self, train_or_test: str, suffix: Optional[str] = None, tune: bool = False
     ) -> Predictor:
-        # 説明変数と目的変数を分離
+        # split data into X and y
         X_train = self.train_df.drop(columns=[self.target_col])
         y_train = self.train_df[[self.target_col]]
         if self.test_df is not None:
@@ -64,20 +64,20 @@ class PredictorMaker:
             train_suffix = train_suffix + f"_{suffix}"
             test_suffix = test_suffix + f"_{suffix}"
 
-        # 使用するモデルを取得
+        # get ML model for prediction
         module_path = PRED_DIR / self.predictor_name / "train.py"
         train = get_object_from_module(module_path, "train")
 
-        # ハイパラチューニング
+        # tune hyperparameters
         if tune:
             logger.info(f"ハイパラチューニングを実行")
             self.params = self.tune_params(X_train, y_train)
 
-        # モデルを構築・評価
+        # bulid and evaluate ML model
         logger.info(f"item: {self.item}")
         predictor = train(X=X_train, y=y_train, suffix=train_suffix, params=self.params)
 
-        # 訓練データ&検証データに対する目的変数を予測
+        # predict y for training and validation data
         y_pred_train = predictor.predict(X_train)
         self.evaluate(y=y_train, y_pred=y_pred_train, split_type="train")
         if self.plot:
@@ -101,24 +101,24 @@ class PredictorMaker:
                     suffix=test_suffix,
                     dir_path=RESULT_DIR / self.data_type / "predict",
                 )
-        # モデルを保存
+        # save ML model
         save_path = MODEL_DIR / self.predictor_name / train_or_test / f"{self.item}_{suffix}.pickle"
         with open(save_path, "wb") as f:
             pickle.dump(predictor, f)
         return predictor
 
     def evaluate(self, y: np.array, y_pred: np.array, split_type: str) -> None:
-        # 二乗平均平方根誤差
+        # rmse
         rmse = round(np.sqrt(mean_squared_error(y, y_pred)), 2)
         self.result.setdefault("rmse", dict())[split_type] = rmse
         logger.info(f"RMSE for {split_type} data [{self.item}]: {rmse}")
 
-        # 平均絶対パーセント誤差
+        # mape
         mape = mean_absolute_percentage_error(y, y_pred)
         self.result.setdefault("mape", dict())[split_type] = mape
         logger.info(f"MAPE for {split_type} data [{self.item}]: {mape}")
 
-        # 決定係数
+        # r2
         r2 = round(r2_score(y, y_pred), 2)
         self.result.setdefault("r2", dict())[split_type] = r2
         logger.info(f"R^2 for {split_type} data [{self.item}]: {r2}")

@@ -39,7 +39,7 @@ class Optimizer:
     def make_model_input(
         model_name: str, data_param: SyntheticDataParameter | RealDataParameter
     ) -> ModelInput:
-        """モデルの入力データを作成"""
+        """Generate model input"""
         module_path = OPT_MODEL_DIR / model_name / "make_input.py"
         make_input = get_object_from_module(module_path, f"make_{data_param.data_type}_input")
         index_set, constant = make_input(params=data_param)
@@ -48,7 +48,7 @@ class Optimizer:
 
     @staticmethod
     def make_model(model_input: ModelInput, x: Optional[dict[str, int]]) -> Model:
-        """最適化モデルを構築"""
+        """Bulid optimization model"""
         module_path = OPT_MODEL_DIR / model_input.model_name / "model.py"
         model_class = get_object_from_module(module_path, "Model")
         model = model_class(index_set=model_input.index_set, constant=model_input.constant, x=x)

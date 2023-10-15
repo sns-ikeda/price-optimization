@@ -11,7 +11,7 @@ from src.optimize.processing import rename_dict
 
 
 def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Constant]:
-    """人工的にモデルのパラメータを生成"""
+    """Generate model parameters from synthetic data"""
     # 集合を作成
     M = [str(m) for m in range(params.num_of_items)]
     K = list(range(params.num_of_prices))
@@ -25,29 +25,22 @@ def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Cons
     P = {(m, k): prices[k] for m, k in itertools.product(M, K)}
     base_seed = params.seed
     g, beta, beta0 = dict(), dict(), dict()
-    # quantity_min = params.base_quantity * 0.8
-    # quantity_max = params.base_quantity * 1.2
-    # coef = 3
+
     for m in M:
-        # beta0[m] = int((quantity_max - quantity_min) * np.random.rand() + quantity_min)
         np.random.seed(base_seed + int(m))
-        # beta0[m] = round(np.random.normal(loc=100, scale=10, size=1)[0], 3)
         beta0[m] = round((200 - 100) * np.random.rand() + 100, 3)
         target_m = np.random.choice([m_ for m_ in M if m_ != m])
         for mp in M + D[m]:
             np.random.seed(base_seed + int(m) + 10 * int(mp))
-            # beta[m, mp] = round(np.random.normal(loc=0, scale=1, size=1)[0], 3)
             if m == mp:
                 beta[m, mp] = round(np.random.normal(loc=-10, scale=1, size=1)[0], 3)
             else:
-                # beta[m, mp] = round(np.random.normal(loc=1, scale=1, size=1)[0], 3)
                 if mp == target_m:
                     beta[m, mp] = round(np.random.normal(loc=5, scale=1, size=1)[0], 3)
                 else:
                     beta[m, mp] = 0
         for d in D[m]:
             np.random.seed(base_seed + int(d))
-            # g[m, d] = round(np.random.rand(), 3)
             g[m, d] = 1.0
     constant = Constant(beta=beta, beta0=beta0, g=g, P=P, prices=prices)
     logger.info(f"D: {D}")

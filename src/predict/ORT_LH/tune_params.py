@@ -15,10 +15,8 @@ def tune_params(X: pd.DataFrame, y: pd.DataFrame, **kwargs) -> dict[str, Any]:
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
     rmse_best = 100000
     for max_depth in [0, 1, 2]:
-        # for regression_lambda in [0, 0.001, 0.01]:
-        # params = {"max_depth": max_depth, "regression_lambda": regression_lambda}
         params = {"max_depth": max_depth, "regression_lambda": 0}
-        # ハイパラチューニング
+        # tune hyperparameters
         model = iai.OptimalTreeRegressor(
             random_seed=1,
             normalize_y=False,

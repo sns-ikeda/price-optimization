@@ -25,7 +25,7 @@ def calc_z(
     g_matrix: np.ndarray,
     phi_matrix: np.ndarray,
 ) -> dict[tuple[str, int], int]:
-    """xからzを算出"""
+    """Calculate z from x"""
     ones_k = np.ones(len(K))
     z_matrix = np.zeros((len(M), len(TL[M[0]])))
 
@@ -67,7 +67,7 @@ def calc_obj(
     beta_matrix: np.ndarray,
     beta0_matrix: np.ndarray,
 ) -> float:
-    """x, zから目的関数を計算"""
+    """Calculate objective function value from x and z"""
     p = np.dot(P_matrix, x_matrix.T)[0]
     ones_k = np.ones(len(K))
     q = np.zeros(len(M))
@@ -87,7 +87,7 @@ def calc_obj(
 def get_opt_prices(
     x_matrix: np.ndarray, P: dict[tuple[str, int], float], M: list[str], K: list[int]
 ) -> dict[str, float]:
-    """解xから各商品の最適価格を算出"""
+    """Calculate optimal prices from x"""
     opt_prices = dict()
     for i, m in enumerate(M):
         for k in K:
@@ -99,7 +99,7 @@ def get_opt_prices(
 
 
 def generate_x_init(M: list[str], K: list[int], seed: int = 0) -> np.ndarray:
-    """初期解を生成"""
+    """generate x_init_matrix"""
     x_init_matrix = np.zeros((len(M), len(K)))
     for i, m in enumerate(M):
         np.random.seed(int(i) + (seed + 100))
@@ -125,7 +125,7 @@ def coordinate_descent(
     threshold: int = 10,
     randomized: bool = False,
 ) -> None:
-    """商品をランダムに1つ選び最適化"""
+    """Coordinate descent algorithm"""
     z_init_matrix = calc_z(
         b=b,
         M=M,
@@ -157,7 +157,7 @@ def coordinate_descent(
         while True:
             total_count += 1
             m = random.choice(M)
-            # 商品mのKパターンの価格を試す
+            # Try the K-pattern price of item m
             for k in K:
                 x_m = np.zeros((len(K),))
                 x_m[k] = 1
@@ -267,7 +267,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
         self.xs = []
 
     def run(self) -> None:
-        """緩和問題のxの値に基づいてランダムサンプリングして丸め込む"""
+        """Run coordinate descent algorithm"""
         M = self.model.index_set.M
         K = self.model.index_set.K
         P = self.model.constant.P
@@ -306,7 +306,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
 
         start = time.time()
         for i in range(self.num_iteration):
-            # ランダムに初期解を作成
+            # generate x_init_matrix
             x_init_matrix = generate_x_init(M=M, K=K, seed=i)
             _best_obj, _opt_prices = coordinate_descent(
                 M=M,
@@ -330,7 +330,7 @@ class CoordinateDescent(BaseSearchAlgorithm):
             logger.info(f"num_iteration: {i}, _best_obj: {_best_obj}, best_obj: {best_obj}")
         elapsed_time = time.time() - start
 
-        # 最終的な結果を格納
+        # store results
         self.result = OptResult(
             calculation_time=elapsed_time,
             objective=best_obj,

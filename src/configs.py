@@ -36,5 +36,5 @@ class SyntheticConfig:
     algo_names: list[str]
 
 
-# アルゴリズムの設定
+# Setting for algorithms
 ALGO_CONFIG = read_config(ALGO_DIR / "algo_config.yaml")

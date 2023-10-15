@@ -14,7 +14,7 @@ def tune_params(X: pd.DataFrame, y: pd.DataFrame, **kwargs) -> dict[str, float]:
     rmse_best = 100000
     for alpha in [0, 0.001, 0.01, 0.1]:
         params = {"alpha": alpha}
-        # ハイパラチューニング
+        # tune hyperparameters
         model = Lasso(**params)
         model.fit(X_train, y_train[target_col].values)
         y_pred = model.predict(X_test)

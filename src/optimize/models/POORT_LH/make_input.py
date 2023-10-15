@@ -18,7 +18,7 @@ except OSError:
 
 # 1変数分岐の場合
 def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Constant]:
-    """人工的にモデルのパラメータを生成"""
+    """Generate model parameters from synthetic data"""
     # 集合を作成
     M = [str(m) for m in range(params.num_of_items)]
     K = list(range(params.num_of_prices))
@@ -34,7 +34,7 @@ def make_synthetic_input(params: SyntheticDataParameter) -> tuple[IndexSet, Cons
             R[m, t] = Rt
     index_set = IndexSet(D=D, M=M, K=K, TL=TL, L=L, R=R)
 
-    # 定数を作成
+    # generate constants
     prices = list(np.linspace(params.price_min, params.price_max, params.num_of_prices))
     prices = [round(price, 3) for price in prices]
     P = {(m, k): prices[k] for m, k in itertools.product(M, K)}

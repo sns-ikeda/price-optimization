@@ -42,7 +42,7 @@ class MultiLocalSearch(BaseAlgorithm):
         )
 
     def local_search(self, seed: int = 0) -> None:
-        """局所探索を1度実行"""
+        """Perform local search once"""
         # 初期解を生成
         current_x, current_z = self.get_initial_solution(seed)
         current_objective = self.evaluate(current_x, current_z)
@@ -53,13 +53,14 @@ class MultiLocalSearch(BaseAlgorithm):
             self.zs.append(current_z)
             self.objectives.append(current_objective)
 
-            # 近傍を取得
+            # get neighbors
             x_neighbors = self.get_neighbors(x=current_x, num_of_price=len(self.index_set.K))
             best_x_neighbor, best_z_neighbor, best_objective = self.get_best_neighbor(
                 x_neighbors=x_neighbors
             )
             logger.info(f"current_objective: {current_objective}")
-            # 近傍解で今よりも良い解があれば移動する
+
+            # If there is a better solution in the neighborhood than the current one, move on.
             if best_objective > current_objective:
                 current_objective = best_objective
                 current_x = best_x_neighbor
@@ -72,7 +73,7 @@ class MultiLocalSearch(BaseAlgorithm):
                 raise Exception("Infinite Loop Error")
 
     def get_initial_solution(self, seed: int = 0) -> tuple[dict[int, int], dict[int, int]]:
-        """初期の状態を生成"""
+        """Generate initial solution"""
         x = dict()
         for m in self.index_set.M:
             np.random.seed(100 * seed + m)
@@ -81,7 +82,7 @@ class MultiLocalSearch(BaseAlgorithm):
         return x, z
 
     def evaluate(self, x: dict[int, int], z: dict[int, int]) -> float:
-        """x, zから目的関数を計算"""
+        """Calculate objective function value from x and z"""
         p = np.array([self.constant.P[(m, k)] for m, k in x.items()])
         q = []
         for m, t in z.items():
@@ -97,7 +98,7 @@ class MultiLocalSearch(BaseAlgorithm):
 
     @staticmethod
     def get_neighbors(x: dict[int, int], num_of_price: int) -> list[dict[int, int]]:
-        """近傍解を取得"""
+        """Get neighbors of x"""
         x_neighbors = []
         for m, k in x.items():
             k_neighbors = []
@@ -112,7 +113,7 @@ class MultiLocalSearch(BaseAlgorithm):
         return x_neighbors
 
     def calculate_z(self, x: dict[int, int]) -> dict[int, int]:
-        """xからzを算出"""
+        """Calculate z from x"""
         z = dict()
         for m in self.index_set.M:
             t = 0
@@ -137,7 +138,7 @@ class MultiLocalSearch(BaseAlgorithm):
         return z
 
     def get_best_neighbor(self, x_neighbors: list[dict[int, int]]) -> tuple[dict[int, int], float]:
-        """近傍の中から最も良い解とそのときの目的関数の値を取得"""
+        """Obtain the best solution from the neighborhood and the value of the objective function at that time"""
         best_x_neighbor, best_z_neighbor, best_objective = None, None, -np.inf
         for x_neighbor in x_neighbors:
             z_neighbor = self.calculate_z(x=x_neighbor)

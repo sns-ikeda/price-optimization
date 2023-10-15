@@ -38,18 +38,18 @@ class MiloRelax(BaseSearchAlgorithm):
         self.randomized_search_rounding()
 
     def randomized_search_rounding(self) -> None:
-        """緩和問題のxの値に基づいてランダムサンプリングして丸め込む"""
+        """Random sampling and rounding based on the value of x in the relaxation problem"""
         M = self.model.index_set.M
         K = self.model.index_set.K
         best_obj = 0
         start = time.time()
         for i in range(self.num_iteration):
-            selected_m_k = []  # 選択されたmとkのタプルを保持
+            selected_m_k = []  # Keep selected m and k tuples
             for m in M:
                 probabilities = [self._result.variable.x[m, k] for k in K]
                 selected_k = random.choices(K, weights=probabilities, k=1)[0]
                 selected_m_k.append((m, selected_k))
-            # 解を作成
+            # make x from selected_m_k
             x = dict()
             for m in M:
                 for k in K:
@@ -59,7 +59,7 @@ class MiloRelax(BaseSearchAlgorithm):
                         x[m, k] = 0
             z = self.calc_z(x=x)
 
-            # 目的関数を計算し，最も良ければ更新
+            # compute the objective function and update if best
             obj = self.calc_obj(x=x, z=z)
             if obj > best_obj:
                 best_obj = obj
@@ -72,7 +72,7 @@ class MiloRelax(BaseSearchAlgorithm):
             logger.info(f"num_iteration: {i}, obj: {obj}, best_obj: {best_obj}")
         elapsed_time = time.time() - start
 
-        # 最終的な計算時間などを格納
+        # store results
         self.result.calculation_time = elapsed_time + self._result.calculation_time
         self.result.index_set = self.model.index_set
         self.result.constant = self.model.constant

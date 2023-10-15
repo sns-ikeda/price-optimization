@@ -6,7 +6,7 @@ Class_or_func = TypeVar("Class_or_func")
 
 
 def get_object_from_module(module_path: Union[str, Path], class_or_func_name: str) -> Class_or_func:
-    """モジュールからクラスや関数を取得"""
+    """Get class or function from module"""
     module_name = str(module_path).split("/")[-1].split(".")[0]
     module = SourceFileLoader(module_name, str(module_path)).load_module()
     class_or_func = getattr(module, class_or_func_name)

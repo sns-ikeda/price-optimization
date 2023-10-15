@@ -10,7 +10,7 @@ from src.optimize.models.POLR.model import Constant, IndexSet
 
 
 def calculate_z(x: dict[str, int], constant, index_set) -> dict[str, int]:
-    """xからzを算出"""
+    """Calculate z from x"""
     z = dict()
     for m in index_set.M:
         t = 0
@@ -38,7 +38,7 @@ def calculate_z(x: dict[str, int], constant, index_set) -> dict[str, int]:
 
 
 def calculate_q(x: dict[str, int], z: dict[str, int], constant, index_set) -> dict[str, float]:
-    """x, zから目的関数を計算"""
+    """Calculate q from x and z"""
 
     q = dict()
     for m, t in z.items():
@@ -61,7 +61,7 @@ def generate_data(
     df_dict, zs_dict, q_avg_dict = dict(), dict(), dict()
     M = index_set.M
     for m in M:
-        # 販売数のデータ作成
+        # generate sales
         qs, zs = [], []
         for prices in price_candidates:
             x = dict()
@@ -76,7 +76,7 @@ def generate_data(
             zs.append(z[m])
         zs_dict[m] = sorted(dict(collections.Counter(zs)).items())
 
-        # 販売数にノイズ追加
+        # add noise
         q_avg = np.mean(qs)
         q_avg_dict[m] = q_avg
         qs_noise = []

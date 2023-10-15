@@ -9,7 +9,7 @@ Model = TypeVar("Model")
 
 
 class BaseAlgorithm(metaclass=ABCMeta):
-    """アルゴリズムの抽象基底クラス"""
+    """Abstract base class for algorithms"""
 
     def __init__(self, model: Model):
         self.model: Model = model
@@ -21,13 +21,13 @@ class BaseAlgorithm(metaclass=ABCMeta):
 
 
 class BaseSearchAlgorithm(BaseAlgorithm):
-    """探索系アルゴリズムの抽象基底クラス"""
+    """Abstract base class for search algorithms"""
 
     def __init__(self, model: Model):
         super().__init__(model)
 
     def calc_z(self, x: dict[tuple[str, int], int]) -> dict[tuple[str, int], int]:
-        """xからzを算出"""
+        """calculate z from x"""
         z, mt_z = dict(), dict()
         a = self.model.constant.a
         b = self.model.constant.b
@@ -38,7 +38,7 @@ class BaseSearchAlgorithm(BaseAlgorithm):
         D = self.model.index_set.D
         TL = self.model.index_set.TL
 
-        # xの値が1となるmとk
+        # m and k for which the value of x is 1.
         mk_x: dict[str, int] = {m: k for m in M for k in K if x[m, k] >= 0.99}
         assert len(mk_x) == len(M)
 
@@ -50,10 +50,10 @@ class BaseSearchAlgorithm(BaseAlgorithm):
                 linear_sum_d = sum(a[m, d, t] * g[m, d] for d in D[m])
                 linear_sum = linear_sum_m + linear_sum_d
                 if linear_sum < b[m, t]:
-                    # 左に分岐
+                    # branch left
                     t = t * 2 + 1
                 else:
-                    # 右に分岐
+                    # branch right
                     t = t * 2 + 2
                 if t in TL[m]:
                     break
@@ -64,15 +64,15 @@ class BaseSearchAlgorithm(BaseAlgorithm):
         return z
 
     def calc_obj(self, x: dict[tuple[str, int], int], z: dict[tuple[str, int], int]) -> float:
-        """x, zから目的関数を計算"""
+        """Calculate objective function value from x and z"""
         M = self.model.index_set.M
         K = self.model.index_set.K
         TL = self.model.index_set.TL
 
-        # xの値が1となるmとk
+        # m and k for which the value of x is 1.
         mk_x: dict[str, int] = {m: k for m in M for k in K if x[m, k] >= 0.99}
 
-        # zの値が1となるmとt
+        # m and t for which the value of z is 1.
         mt_z: dict[str, int] = {m: t for m in M for t in TL[m] if z[m, t] >= 0.99}
         assert len(mt_z) == len(mk_x) == len(M)
         assert mk_x.keys() == mt_z.keys()

@@ -14,19 +14,19 @@ def plot(
     dir_path: Path,
     suffix: Optional[str] = None,
 ):
-    # 結果をプロット
-    plt.scatter(y_pred, y, color="blue")  # 横軸に予測値，縦軸に実測値
+    # plot results
+    plt.scatter(y_pred, y, color="blue")  # horizontal: predicted, vertical: actual
     if suffix is None:
-        plt.title(f"{predictor_name}: {target_item}")  # 図のタイトル
+        plt.title(f"{predictor_name}: {target_item}")
         save_name = f"{predictor_name}_{target_item}.png"
     else:
-        plt.title(f"{predictor_name}: {target_item} [{suffix}]")  # 図のタイトル
+        plt.title(f"{predictor_name}: {target_item} [{suffix}]")
         save_name = f"{predictor_name}_{target_item}_{suffix}.png"
 
-    plt.xlabel("predicted units")  # x軸のラベル
-    plt.ylabel("actual units")  # y軸のラベル
+    plt.xlabel("predicted units")
+    plt.ylabel("actual units")
     plt.xlim(0, max(max(np.array(y))[0], max(y_pred)) * 1.1)
     plt.ylim(0, max(max(np.array(y))[0], max(y_pred)) * 1.1)
-    plt.grid()  # グリッド線を表示
+    plt.grid()
     plt.savefig(dir_path / save_name, format="png", dpi=300)
     plt.clf()

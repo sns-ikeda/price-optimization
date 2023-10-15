@@ -4,7 +4,7 @@ from typing import Optional
 
 
 def node2parent(node: int) -> Optional[int]:
-    """親ノードを取得"""
+    """Get parent node from node"""
     if node == 0:
         parent = None
     # ノードが奇数であれば1引いて2で割ると親ノードになる
@@ -17,7 +17,7 @@ def node2parent(node: int) -> Optional[int]:
 
 
 def leaf2root(leaf_node: int) -> list[int]:
-    """葉ノードから根ノードまでのパスを抽出"""
+    """Get node path from leaf node to root node"""
     node_path = [leaf_node]
     node = leaf_node
     while node > 0:
@@ -28,7 +28,7 @@ def leaf2root(leaf_node: int) -> list[int]:
 
 
 def leaf2LtRt(leaf_node: int) -> tuple[list[int], list[int]]:
-    """葉ノードに至るまでに根ノードから左分岐と右分岐したノードを抽出"""
+    """Get left and right branch nodes from leaf node"""
     Lt, Rt = [], []
     nodes = leaf2root(leaf_node)
     for node in nodes:
@@ -47,19 +47,19 @@ def leaf2LtRt(leaf_node: int) -> tuple[list[int], list[int]]:
 
 
 def depth2leaves(depth: int) -> list[int]:
-    """木の深さから葉ノードを抽出"""
+    """Get leaf nodes from depth of tree"""
     leaf_nodes = list(range(2 ** (depth) - 1, 2 ** (depth + 1) - 1))
     return leaf_nodes
 
 
 def depth2allnodes(depth: int) -> list[int]:
-    """木の深さから全ノードを抽出"""
+    """Get all nodes from depth of tree"""
     all_nodes = list(range(2 ** (depth + 1) - 1))  # 等比数列の和の公式
     return all_nodes
 
 
 def depth2branchnodes(depth: int) -> list[int]:
-    """木の深さから枝ノードを抽出"""
+    """Get branch nodes from depth of tree"""
     all_nodes = depth2allnodes(depth=depth)
     leaf_nodes = depth2leaves(depth=depth)
     branch_nodes = list(set(all_nodes) - set(leaf_nodes))

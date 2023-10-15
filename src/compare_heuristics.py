@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 base_quantity=300,
                 seed=i,
             )
-            # アルゴリズムごとに最適価格を計算
+            # Calculate optimal prices for each algorithm
             result_dict = dict()
             for algo_name in algo_names:
                 model_input = Optimizer.make_model_input(
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                 }
             results.append(result_dict)
 
-        # 計算結果の集約（平均や標準偏差を計算）
+        # Summarize result (mean and std)
         result_summary = {algo_name: dict() for algo_name in algo_names}
         for algo_name in algo_names:
             result_summary[algo_name]["mean (calculation_time)"] = np.mean(

@@ -25,7 +25,7 @@ def get_price_candidates(
     num_of_prices: int,
     seed: int = 0,
 ) -> list[list[float]]:
-    """ランダムで各商品の価格を生成"""
+    """Generate price candidates for each item randomly"""
     price_candidates = []
     for i in range(data_size):
         # prices = [
@@ -49,10 +49,10 @@ def calc_obj(
     algo_name: str = "solver_naive",
     data_param=dict(),
 ) -> float:
-    """価格が与えられた場合の目的関数（売上）を計算"""
+    """Calculate objective value of optimization problem with given prices"""
     x_1: dict[str, int] = {
         k[0]: k[1] for k, v in x.items() if round(v, 2) == 1.0
-    }  # x_mk = 1となるm: k
+    }
     assert len(x_1) == len(index_set.M), "The length of optimal prices is not enough."
 
     if predictor_name == "linear_regression":
@@ -77,7 +77,7 @@ def calc_obj(
 
 
 def average_pred_result(pred_result_dict: dict[str, dict[str, dict[str, float]]]):
-    """予測結果の商品平均を計算"""
+    """Calculate average of prediction results"""
     d = dict()
     for item, dict_ in pred_result_dict.items():
         d.setdefault("rmse", dict()).setdefault("train", dict())[item] = dict_["rmse"]["train"]
@@ -138,15 +138,15 @@ if __name__ == "__main__":
                     base_quantity=300,
                     seed=i * 100,
                 )
-                # 真のモデル生成
+                # Generate parameters of true model
                 result_dict = dict()
-                logger.info("真のモデルのパラメータ")
+                logger.info("Generate parameters of true model")
                 model_input = Optimizer.make_model_input(
                     model_name=true_model_name, data_param=params
                 )
                 index_set, constant = model_input.index_set, model_input.constant
 
-                # 真のモデルに対する最適価格の計算
+                # Calculate optimal prices based on true model
                 module_path = OPT_MODEL_DIR / true_model_name / "model.py"
                 model_class = get_object_from_module(module_path, "Model")
                 model = model_class(index_set=index_set, constant=constant)
@@ -155,15 +155,15 @@ if __name__ == "__main__":
                 algorithm.run()
                 result_dict["calculation_time"] = algorithm.result.calculation_time
 
-                # 真のモデルを基にしたデータ生成
-                logger.info("データ生成")
+                # Generate data from true model
+                logger.info("Generate data from true model")
                 if calc_time_only:
                     results.append(result_dict)
                     continue
                 module_path = GEN_DATA_DIR / true_predictor_name / "gen_data.py"
                 generate_data = get_object_from_module(module_path, "generate_data")
 
-                # 訓練データ生成
+                # Generate training data
                 price_candidates_train = get_price_candidates(
                     data_size=data_size,
                     num_of_items=params.num_of_items,
@@ -175,7 +175,7 @@ if __name__ == "__main__":
                 train_df_dict, q_avg_train = generate_data(
                     price_candidates_train, index_set, constant, noise_variance=noise_variance
                 )
-                # テストデータ生成
+                # Generate testing data
                 price_candidates_test = get_price_candidates(
                     data_size=test_data_size,
                     num_of_items=params.num_of_items,
@@ -187,13 +187,13 @@ if __name__ == "__main__":
                 test_df_dict, q_avg_test = generate_data(
                     price_candidates_test, index_set, constant, noise_variance=noise_variance
                 )
-                # 商品ごとの需要予測
+                # Bulid demand prediction model for each item
                 item2prices = {m: constant.prices for m in index_set.M}
                 item2predictor, _pred_result = dict(), dict()
                 try:
                     for item, df in train_df_dict.items():
                         target_col = get_label_from_item(item=item)
-                        # 訓練データに対する予測モデルを構築
+                        # Build demand prediction model using training data
                         pm = PredictorMaker(
                             predictor_name=use_predictor_name,
                             train_df=df,
@@ -208,27 +208,27 @@ if __name__ == "__main__":
                     logger.error("predictor error")
                     continue
 
-                # 予測結果を格納
+                # Store prediction results
                 pred_result = average_pred_result(_pred_result)
                 result_dict["pred"] = pred_result
                 result_dict["q_avg_train"] = q_avg_train
                 result_dict["q_avg_test"] = q_avg_test
 
-                # 価格最適化
-                # 訓練データに対して計算
+                # Price optimization using demand prediction model
+                # Build data parameter
                 data_param = RealDataParameter(
                     num_of_prices=params.num_of_prices,
                     item2predictor=item2predictor,
                     item2prices=item2prices,
                     g=constant.g,
                 )
-                logger.info("構築した予測モデルを用いた最適化価格計算")
+                logger.info("Optimized price calculation using the constructed prediction model")
                 optimizer = Optimizer(
                     model_name=use_model_name, algo_name=algo_name, data_param=data_param
                 )
                 optimizer.run(**ALGO_CONFIG[algo_name])
 
-                # 最適化結果を格納
+                # Store optimization results
                 result_dict["obj"] = {
                     "obj_true_price_true": algorithm.result.objective,
                     "obj_hat_price_hat": optimizer.result.objective,
@@ -246,21 +246,19 @@ if __name__ == "__main__":
                 }
                 results.append(result_dict)
 
-                # f^(z^) / f*(z*), f*(z^) / f*(z*) の計算結果
+                # Evaluation of f^(z^) / f*(z*) and f*(z^) / f*(z*)
                 f_ratio_uppers, f_ratio_lowers = [], []
                 for result in results:
-                    # 価格戦略の評価
                     obj_true_price_true = result["obj"]["obj_true_price_true"]
                     obj_hat_price_hat = result["obj"]["obj_hat_price_hat"]
                     obj_true_price_hat = result["obj"]["obj_true_price_hat"]
                     if obj_true_price_true > 0 and obj_hat_price_hat > 0 and obj_true_price_hat > 0:
-                        print(result["obj"])
                         ratio_upper = obj_hat_price_hat / obj_true_price_true
                         f_ratio_uppers.append(ratio_upper)
                         ratio_lower = obj_true_price_hat / obj_true_price_true
                         f_ratio_lowers.append(ratio_lower)
 
-            # 計算結果の出力
+            # Output results
             result_summary = dict()
             result_summary["mean (calculation_time)"] = np.mean(
                 [r["calculation_time"] for r in results]
@@ -294,7 +292,7 @@ if __name__ == "__main__":
                 result_summary["std (mape test)"] = np.std(
                     [r["pred"]["mape"]["test"]["mean"] for r in results]
                 )
-                # jsonで保存
+                # Save results as json
                 json_name = (
                     RESULT_DIR / "synthetic" / f"result_{noise_variance}_{use_predictor_name}.json"
                 )
@@ -304,7 +302,7 @@ if __name__ == "__main__":
             except NameError:
                 pass
 
-    # csvで保存
+    # Save results as csv
     import pandas as pd
 
     result_df = pd.DataFrame.from_dict(result_output, orient="index").T
